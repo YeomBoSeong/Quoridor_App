@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계정 삭제 - Valhalla of Quoridor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .warning-box .icon {
+            font-size: 24px;
+            margin-right: 12px;
+            color: #ff9800;
+        }
+
+        .warning-box .text {
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .warning-box .text strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .delete-button {
+            width: 100%;
+            padding: 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .delete-button:hover {
+            background: #c82333;
+        }
+
+        .delete-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏰 Valhalla of Quoridor</h1>
+            <p>계정 삭제</p>
+        </div>
+
+        <form id="deleteForm">
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input type="email" id="email" name="email" required placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="username">유저네임</label>
+                <input type="text" id="username" name="username" required placeholder="사용자 이름">
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" required placeholder="비밀번호">
+            </div>
+
+            <div class="warning-box">
+                <div class="icon">⚠️</div>
+                <div class="text">
+                    <strong>주의: 이 작업은 되돌릴 수 없습니다</strong>
+                    계정을 삭제하면 다음 데이터가 영구적으로 삭제됩니다:
+                    <ul style="margin-top: 8px; margin-left: 20px;">
+                        <li>계정 정보 (이메일, 유저네임)</li>
+                        <li>친구 관계</li>
+                        <li>채팅 메시지</li>
+                        <li>프로필 사진</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button type="submit" class="delete-button" id="deleteButton">
+                계정 영구 삭제
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p style="margin-top: 10px; color: #666;">처리 중...</p>
+        </div>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('deleteForm');
+        const deleteButton = document.getElementById('deleteButton');
+        const loading = document.getElementById('loading');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 이중 확인
+            const confirmText = '정말로 계정을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 모든 데이터가 영구적으로 삭제됩니다.\n\n계속하려면 "확인"을 클릭하세요.';
+            if (!confirm(confirmText)) {
+                return;
+            }
+
+            // 폼 데이터 수집
+            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // UI 업데이트
+            deleteButton.disabled = true;
+            form.style.display = 'none';
+            loading.style.display = 'block';
+            message.style.display = 'none';
+
+            try {
+                // API 호출
+                const response = await fetch('/api/delete-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                // 로딩 숨기기
+                loading.style.display = 'none';
+
+                if (response.ok) {
+                    // 성공
+                    message.className = 'message success';
+                    message.textContent = '✅ ' + data.message;
+                    message.style.display = 'block';
+                } else {
+                    // 실패
+                    message.className = 'message error';
+                    message.textContent = '❌ ' + (data.detail || '계정 삭제에 실패했습니다.');
+                    message.style.display = 'block';
+
+                    // 폼 다시 표시
+                    form.style.display = 'block';
+                    deleteButton.disabled = false;
+                }
+            } catch (error) {
+                // 네트워크 에러
+                loading.style.display = 'none';
+                message.className = 'message error';
+                message.textContent = '❌ 네트워크 오류가 발생했습니다. 다시 시도해주세요.';
+                message.style.display = 'block';
+
+                // 폼 다시 표시
+                form.style.display = 'block';
+                deleteButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

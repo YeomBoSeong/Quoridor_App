@@ -12,8 +12,8 @@ public class InterstitialAdManager : MonoBehaviour
     public static InterstitialAdManager Instance { get; private set; }
 
     [Header("AdMob Settings")]
-    [SerializeField] private string androidAdUnitId = "ca-app-pub-4921016092440788/7861843020"; // 전면 광고 단위 ID
-    [SerializeField] private string iosAdUnitId = "ca-app-pub-3940256099942544/4411468910"; // iOS 테스트 ID
+    [SerializeField] private string androidAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Interstitial Ad Unit ID
+    [SerializeField] private string iosAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Interstitial Ad Unit ID
 
     // 테스트용 전면 광고 단위 ID (개발 중 사용)
     private const string TEST_ANDROID_AD_UNIT = "ca-app-pub-3940256099942544/1033173712";

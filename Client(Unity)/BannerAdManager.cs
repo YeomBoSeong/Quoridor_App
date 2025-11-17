@@ -9,8 +9,8 @@ using GoogleMobileAds.Api;
 public class BannerAdManager : MonoBehaviour
 {
     [Header("AdMob Settings")]
-    [SerializeField] private string androidAdUnitId = "ca-app-pub-4921016092440788/5253482248"; // 배너 광고 단위 ID
-    [SerializeField] private string iosAdUnitId = "ca-app-pub-3940256099942544/2934735716"; // iOS 테스트 ID
+    [SerializeField] private string androidAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Banner Ad Unit ID
+    [SerializeField] private string iosAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Banner Ad Unit ID
 
     // 테스트용 배너 광고 단위 ID (개발 중 사용)
     private const string TEST_ANDROID_AD_UNIT = "ca-app-pub-3940256099942544/6300978111";

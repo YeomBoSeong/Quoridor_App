@@ -13,8 +13,8 @@ public class AdsManager : MonoBehaviour
 
     // AdMob 설정
     [Header("AdMob Settings")]
-    [SerializeField] private string androidAdUnitId = "ca-app-pub-4921016092440788/7841661729"; // 실제 광고 단위 ID
-    [SerializeField] private string iosAdUnitId = "ca-app-pub-3940256099942544/1712485313"; // iOS 테스트 ID (필요시 실제 ID로 변경)
+    [SerializeField] private string androidAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Ad Unit ID
+    [SerializeField] private string iosAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Ad Unit ID
 
     // 테스트용 광고 단위 ID (개발 중 사용)
     private const string TEST_ANDROID_AD_UNIT = "ca-app-pub-3940256099942544/5224354917";

@@ -37,3 +37,7 @@ for_github/
 - **AI Opponent**: Play against AI with multiple difficulty levels
 - **Game History**: Track and replay past games
 - **Profile Management**: Customize profile with image upload
+
+## Screenshots
+
+<img src="Screenshots/menu.png" width="200" height="400"> <img src="Screenshots/time_control.jpg" width="200" height="400"> <img src="Screenshots/game.png" width="200" height="400"> <img src="Screenshots/computer.png" width="200" height="400"> <img src="Screenshots/profile.png" width="200" height="400"> <img src="Screenshots/friends.jpg" width="200" height="400">

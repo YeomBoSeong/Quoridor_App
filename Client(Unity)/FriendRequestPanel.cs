@@ -45,8 +45,30 @@ public class FriendRequestPanel : MonoBehaviour
         }
         else
         {
+            // 씬 재진입 시 UI 참조를 기존 instance에 갱신
+            instance.UpdateUIReferences(friendRequestPanel, messageText, outButton);
             Destroy(gameObject);
             return;
+        }
+    }
+
+    /// <summary>
+    /// 씬 재진입 시 UI 참조 갱신
+    /// </summary>
+    void UpdateUIReferences(GameObject newPanel, TextMeshProUGUI newMessageText, Button newOutButton)
+    {
+        if (newPanel != null)
+            friendRequestPanel = newPanel;
+
+        if (newMessageText != null)
+            messageText = newMessageText;
+
+        if (newOutButton != null)
+        {
+            // 기존 리스너 제거 후 새로 등록
+            outButton = newOutButton;
+            outButton.onClick.RemoveAllListeners();
+            outButton.onClick.AddListener(OnOutClicked);
         }
     }
 

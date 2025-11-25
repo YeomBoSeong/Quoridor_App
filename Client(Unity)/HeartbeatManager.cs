@@ -36,7 +36,6 @@ public class HeartbeatManager : MonoBehaviour
     {
         if (isConnected)
         {
-            Debug.Log("[HEARTBEAT] Already connected");
             return;
         }
 
@@ -61,13 +60,11 @@ public class HeartbeatManager : MonoBehaviour
             string wsUrl = $"{ServerConfig.GetWebSocketUrl()}/heartbeat";
             Uri uri = new Uri(wsUrl);
 
-            Debug.Log($"[HEARTBEAT] Connecting to {wsUrl}");
             await webSocket.ConnectAsync(uri, cancellationTokenSource.Token);
 
             if (webSocket.State == WebSocketState.Open)
             {
                 isConnected = true;
-                Debug.Log("[HEARTBEAT] Connected successfully");
 
                 // 첫 메시지로 username 전송
                 await SendMessage($"connect {username}");
@@ -77,12 +74,10 @@ public class HeartbeatManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"[HEARTBEAT] Connection failed. State: {webSocket.State}");
             }
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[HEARTBEAT] Connection error: {ex.Message}");
             isConnected = false;
         }
     }
@@ -99,7 +94,6 @@ public class HeartbeatManager : MonoBehaviour
             if (webSocket != null && webSocket.State == WebSocketState.Open)
             {
                 await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None);
-                Debug.Log("[HEARTBEAT] Disconnected");
             }
 
             isConnected = false;
@@ -107,7 +101,6 @@ public class HeartbeatManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[HEARTBEAT] Disconnect error: {ex.Message}");
         }
     }
 
@@ -137,23 +130,19 @@ public class HeartbeatManager : MonoBehaviour
                     if (message.Trim() == "ping")
                     {
                         await SendMessage("pong");
-                        Debug.Log("[HEARTBEAT] Received ping, sent pong");
                     }
                 }
                 else if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    Debug.Log("[HEARTBEAT] Server closed connection");
                     break;
                 }
             }
         }
         catch (OperationCanceledException)
         {
-            Debug.Log("[HEARTBEAT] Receive cancelled");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[HEARTBEAT] Receive error: {ex.Message}");
         }
         finally
         {
@@ -174,7 +163,6 @@ public class HeartbeatManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[HEARTBEAT] Send error: {ex.Message}");
         }
     }
 
@@ -194,5 +182,13 @@ public class HeartbeatManager : MonoBehaviour
     void OnDestroy()
     {
         DisconnectHeartbeat();
+    }
+
+    /// <summary>
+    /// Heartbeat 연결 상태 확인
+    /// </summary>
+    public bool IsConnected()
+    {
+        return isConnected && webSocket != null && webSocket.State == WebSocketState.Open;
     }
 }

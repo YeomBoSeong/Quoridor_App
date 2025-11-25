@@ -98,6 +98,16 @@ public class AIGameManager : MonoBehaviour
     {
         InitializeAIGame();
         InitializeButtons();
+
+        // UI 초기화 완료 후 연결 (다음 프레임에서 실행)
+        StartCoroutine(ConnectAfterInitialization());
+    }
+
+    System.Collections.IEnumerator ConnectAfterInitialization()
+    {
+        // 1프레임 대기 (UI 완전 초기화 보장)
+        yield return null;
+
         ConnectToAIServer();
     }
 
@@ -107,7 +117,6 @@ public class AIGameManager : MonoBehaviour
         myPlayerColor = TimeControlManager.playerColor;
         aiDifficulty = TimeControlManager.aiDifficulty;
 
-        Debug.Log($"[AI_GAME] Player Color: {myPlayerColor}, AI Difficulty: {aiDifficulty}");
 
         // 내 정보 설정
         if (SessionData.IsValidSession())
@@ -162,6 +171,9 @@ public class AIGameManager : MonoBehaviour
             action?.Invoke();
         }
 
+        // AI 게임에서는 Heartbeat 체크 불필요 (AI WebSocket이 연결 관리)
+        // Heartbeat는 멀티플레이어 게임용
+
         // 벽 모드일 때 입력 처리
         if (isWallMode && isMyTurn && !isGameEnded)
         {
@@ -175,24 +187,34 @@ public class AIGameManager : MonoBehaviour
     {
         try
         {
+            Debug.Log("[AI] ConnectToAIServer 시작");
             aiWebSocket = new ClientWebSocket();
+
+            // 프로토콜 레벨 Ping을 3초마다 자동 전송
+            aiWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(3);
+
             cancellationTokenSource = new CancellationTokenSource();
 
             string wsUrl = $"{ServerConfig.GetWebSocketUrl()}/ai-game";
             var uri = new Uri(wsUrl);
 
-
+            Debug.Log($"[AI] 연결 시도: {wsUrl}");
             await aiWebSocket.ConnectAsync(uri, cancellationTokenSource.Token);
+            Debug.Log($"[AI] 연결 성공. State: {aiWebSocket.State}");
 
             // 초기 메시지 전송: "PlayerColor Difficulty"
             string initialMessage = $"{myPlayerColor} {aiDifficulty}";
+            Debug.Log($"[AI] 초기 메시지 전송: {initialMessage}");
             await SendMessageAsync(initialMessage);
 
             // 메시지 수신 시작
+            Debug.Log("[AI] ReceiveMessagesAsync 시작");
             _ = ReceiveMessagesAsync();
+            Debug.Log("AIGameManager.cs: ConnectToAIServer() called.");
         }
         catch (Exception ex)
         {
+            Debug.LogError($"[AI] ConnectToAIServer 예외: {ex.Message}\n{ex.StackTrace}");
             ShowGameResult("Connection Failed");
         }
     }
@@ -225,6 +247,7 @@ public class AIGameManager : MonoBehaviour
         {
             while (aiWebSocket != null && aiWebSocket.State == WebSocketState.Open && !cancellationTokenSource.Token.IsCancellationRequested)
             {
+                // 프로토콜 레벨 Ping/Pong이 연결을 관리하므로 타임아웃 불필요
                 var result = await aiWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationTokenSource.Token);
 
                 if (result.MessageType == WebSocketMessageType.Text)
@@ -243,6 +266,7 @@ public class AIGameManager : MonoBehaviour
                     mainThreadActions.Enqueue(() =>
                     {
                         HandleWebSocketDisconnect();
+                        Debug.Log("AIGameManager.cs: ReceiveMessagesAsync() 실행됨.");
                     });
                     break;
                 }
@@ -250,9 +274,11 @@ public class AIGameManager : MonoBehaviour
         }
         catch (OperationCanceledException)
         {
+            Debug.Log("[AI] ReceiveMessagesAsync 취소됨");
         }
         catch (Exception ex)
         {
+            Debug.LogError($"[AI] ReceiveMessagesAsync 예외: {ex.Message}\n{ex.StackTrace}");
             mainThreadActions.Enqueue(() =>
             {
                 HandleWebSocketDisconnect();
@@ -261,6 +287,7 @@ public class AIGameManager : MonoBehaviour
         finally
         {
             isReceivingMessages = false;
+            Debug.Log("[AI] ReceiveMessagesAsync 종료");
         }
     }
 
@@ -268,44 +295,57 @@ public class AIGameManager : MonoBehaviour
 
     void HandleAIMessage(string message)
     {
-        string[] parts = message.Split(' ');
-
-        if (parts.Length == 0)
-            return;
-
-        string command = parts[0];
-
-        switch (command)
+        try
         {
-            case "Move":
-                // AI 이동: "Move Y,X"
-                if (parts.Length >= 2)
-                {
-                    HandleAIMove(parts[1]);
-                }
-                break;
+            Debug.Log($"[AI] 메시지 수신: {message}");
+            string[] parts = message.Split(' ');
 
-            case "Wall":
-                // AI 벽 배치: "Wall horizontal Y,X" 또는 "Wall vertical Y,X"
-                if (parts.Length >= 3)
-                {
-                    string wallType = parts[1]; // "horizontal" or "vertical"
-                    string position = parts[2]; // "Y,X"
-                    HandleAIWall(wallType, position);
-                }
-                break;
+            if (parts.Length == 0)
+                return;
 
-            case "GameEnd":
-                // 게임 종료: "GameEnd winner"
-                if (parts.Length >= 2)
-                {
-                    string winner = parts[1]; // "red" or "blue"
-                    HandleGameEnd(winner);
-                }
-                break;
+            string command = parts[0];
 
-            default:
-                break;
+            switch (command)
+            {
+                case "Move":
+                    // AI 이동: "Move Y,X"
+                    if (parts.Length >= 2)
+                    {
+                        Debug.Log($"[AI] HandleAIMove 호출: {parts[1]}");
+                        HandleAIMove(parts[1]);
+                    }
+                    break;
+
+                case "Wall":
+                    // AI 벽 배치: "Wall horizontal Y,X" 또는 "Wall vertical Y,X"
+                    if (parts.Length >= 3)
+                    {
+                        string wallType = parts[1]; // "horizontal" or "vertical"
+                        string position = parts[2]; // "Y,X"
+                        Debug.Log($"[AI] HandleAIWall 호출: {wallType} {position}");
+                        HandleAIWall(wallType, position);
+                    }
+                    break;
+
+                case "GameEnd":
+                    // 게임 종료: "GameEnd winner"
+                    if (parts.Length >= 2)
+                    {
+                        string winner = parts[1]; // "red" or "blue"
+                        Debug.Log($"[AI] HandleGameEnd 호출: {winner}");
+                        HandleGameEnd(winner);
+                    }
+                    break;
+
+                default:
+                    Debug.LogWarning($"[AI] 알 수 없는 명령어: {command}");
+                    break;
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[AI] HandleAIMessage 예외: {ex.Message}\n{ex.StackTrace}");
+            HandleWebSocketDisconnect();
         }
     }
 
@@ -362,7 +402,6 @@ public class AIGameManager : MonoBehaviour
         int centerX = int.Parse(coords[1]);
         bool isHorizontal = (wallType == "horizontal");
 
-        Debug.Log($"[AI_WALL_RECV] AI placed {wallType} wall at center (Y={centerY},X={centerX})");
 
         // 벽의 중심 좌표를 시작점/끝점 좌표로 변환
         int y1, x1, y2, x2;
@@ -381,13 +420,11 @@ public class AIGameManager : MonoBehaviour
             y2 = centerY + 1;
         }
 
-        Debug.Log($"[AI_WALL_RECV] Converted to endpoints: (Y1={y1},X1={x1}) - (Y2={y2},X2={x2})");
 
         // 보드 업데이트
         if (gameBoard != null)
         {
             gameBoard.put_wall(y1, x1, y2, x2);
-            Debug.Log($"[AI_WALL_BOARD] Wall placed on board array at positions: [{y1},{x1}], [{(y1+y2)/2},{(x1+x2)/2}], [{y2},{x2}]");
         }
 
         // Unity에서 벽 표시 (벽 개수는 VisualizeOpponentWall에서 감소됨)
@@ -473,10 +510,7 @@ public class AIGameManager : MonoBehaviour
             y2 = y1 + 2;
         }
 
-        Debug.Log($"[MY_WALL_PLACE] Placing {(isWallHorizontal ? "horizontal" : "vertical")} wall at (Y1={y1},X1={x1}) - (Y2={y2},X2={x2})");
-        Debug.Log($"[MY_WALL_PLACE] Board coordinates: boardY={currentBoardCoordinates.x}, boardX={currentBoardCoordinates.y}");
         gameBoard.put_wall(y1, x1, y2, x2);
-        Debug.Log($"[MY_WALL_BOARD] Wall placed on board array at positions: [{y1},{x1}], [{(y1+y2)/2},{(x1+x2)/2}], [{y2},{x2}]");
 
         // 보드에 실제 벽 시각화 (미리보기가 아닌 실제 벽)
         // 벽 개수는 OnPlaceButtonClicked에서 감소함
@@ -546,7 +580,6 @@ public class AIGameManager : MonoBehaviour
         // AI 서버에 전송: "wall:horizontal:centerY:centerX" (중심 좌표는 항상 홀수)
         string wallType = horizontal ? "horizontal" : "vertical";
         string message = $"wall:{wallType}:{centerY}:{centerX}";
-        Debug.Log($"[AI_WALL_SEND] {message} (y1={y1},x1={x1},y2={y2},x2={x2})");
         _ = SendMessageAsync(message);
 
         // 턴 전환
@@ -572,6 +605,7 @@ public class AIGameManager : MonoBehaviour
             else if (result == "Connection Lost")
             {
                 resultMessage = "Connection Lost";
+                Debug.Log("AIGameManager.cs: ShowGameResult() called.");
             }
             else if (result == "Connection Failed")
             {
@@ -661,7 +695,8 @@ public class AIGameManager : MonoBehaviour
 
         // 게임 종료 처리
         isGameEnded = true;
-        ShowGameResult("Connection Lost");
+        ShowGameResult("Connection Failed");
+        Debug.Log("AIGameManager.cs: HandleWebSocketDisconnect() 실행됨");
     }
 
     void CleanupWebSocket()
@@ -896,7 +931,6 @@ public class AIGameManager : MonoBehaviour
 
         // 화면 좌표로 변환
         Vector3 wallWorldPos = ServerCoordToWorldPosition((int)centerY, (int)centerX);
-        Debug.Log($"WorldPos=({wallWorldPos.x},{wallWorldPos.y})");
 
         // 벽 오브젝트 생성
         GameObject myWall = Instantiate(wallPrefab, gameCanvas.transform);
@@ -945,13 +979,11 @@ public class AIGameManager : MonoBehaviour
             {
                 isGameEnded = true;
                 ShowGameResult("Won");
-                Debug.Log("[AI_GAME] Player Won!");
             }
             else if (winStatus == 2) // 패배
             {
                 isGameEnded = true;
                 ShowGameResult("Lost");
-                Debug.Log("[AI_GAME] Player Lost!");
             }
         }
     }
@@ -1400,7 +1432,6 @@ public class AIGameManager : MonoBehaviour
         // 보드 범위 확인
         if (boardY < 1 || boardY > 15 || boardX < 0 || boardX > 16 || boardX2 < 0 || boardX2 > 16)
         {
-            Debug.Log($"[WALL_CHECK] Horizontal wall at (Y={boardY},X={boardX}) - OUT OF BOUNDS");
             return Vector2.zero;
         }
 
@@ -1416,7 +1447,6 @@ public class AIGameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[WALL_CHECK] Horizontal wall at (Y={boardY},X={boardX}) to (Y={boardY},X={boardX2}) - INVALID (is_wall_valid returned false)");
         }
 
         return Vector2.zero;
@@ -1430,7 +1460,6 @@ public class AIGameManager : MonoBehaviour
         // 보드 범위 확인
         if (boardX < 1 || boardX > 15 || boardY < 0 || boardY > 16 || boardY2 < 0 || boardY2 > 16)
         {
-            Debug.Log($"[WALL_CHECK] Vertical wall at (Y={boardY},X={boardX}) - OUT OF BOUNDS");
             return Vector2.zero;
         }
 
@@ -1446,7 +1475,6 @@ public class AIGameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[WALL_CHECK] Vertical wall at (Y={boardY},X={boardX}) to (Y={boardY2},X={boardX}) - INVALID (is_wall_valid returned false)");
         }
 
         return Vector2.zero;
@@ -1677,8 +1705,15 @@ public class AIGameManager : MonoBehaviour
 
             yield return request.SendWebRequest();
 
-            if (request.result != UnityWebRequest.Result.Success || request.responseCode == 401)
+            if (request.result != UnityWebRequest.Result.Success)
             {
+                // 네트워크 연결 실패
+                Debug.Log($"[SESSION] Network error: {request.result}, Error: {request.error}");
+                ShowGameResult("Connection Failed");
+            }
+            else if (request.responseCode == 401)
+            {
+                // 실제 인증 실패 (이중 로그인)
                 ShowSessionWarningAndQuit();
             }
             else

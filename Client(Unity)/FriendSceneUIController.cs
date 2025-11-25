@@ -16,11 +16,9 @@ public class FriendSceneUIController : MonoBehaviour
         if (FriendRequestListPanel.GetInstance() != null)
         {
             FriendRequestListPanel.GetInstance().RegisterUIController(this);
-            Debug.Log("[FriendSceneUIController] Registered with FriendRequestListPanel");
         }
         else
         {
-            Debug.LogError("[FriendSceneUIController] FriendRequestListPanel instance not found!");
         }
 
         SetupUI();
@@ -50,11 +48,9 @@ public class FriendSceneUIController : MonoBehaviour
         if (friendRequestListPanel != null)
         {
             friendRequestListPanel.SetActive(true);
-            Debug.Log("[FriendSceneUIController] Request panel shown");
         }
         else
         {
-            Debug.LogError("[FriendSceneUIController] friendRequestListPanel is null!");
         }
     }
 
@@ -63,7 +59,6 @@ public class FriendSceneUIController : MonoBehaviour
         if (friendRequestListPanel != null)
         {
             friendRequestListPanel.SetActive(false);
-            Debug.Log("[FriendSceneUIController] Request panel hidden");
         }
     }
 

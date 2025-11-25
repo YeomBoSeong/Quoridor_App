@@ -131,11 +131,9 @@ public class StatusManager : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log($"Status updated to: {status}");
             }
             else
             {
-                Debug.LogWarning($"Failed to update status to {status}: {request.error}");
             }
         }
     }
@@ -162,7 +160,6 @@ public class StatusManager : MonoBehaviour
             yield return request.SendWebRequest();
 
             // 결과에 상관없이 빠르게 처리
-            Debug.Log($"App quit - status set to {status}");
         }
     }
 }

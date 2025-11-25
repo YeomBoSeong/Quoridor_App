@@ -207,7 +207,6 @@ public class TimeControlManager : MonoBehaviour
         // 게임 횟수 확인
         if (GameCreditManager.Instance == null)
         {
-            Debug.LogWarning("[TimeControlManager] GameCreditManager not found");
             // 매니저 없으면 그냥 진행
             StatusManager.SetUserInGame();
             StartCoroutine(ValidateSessionAndProceed(() => StartMatchmaking(timeControl)));
@@ -230,8 +229,15 @@ public class TimeControlManager : MonoBehaviour
 
         if (!canPlay)
         {
-            Debug.Log($"[TimeControlManager] Cannot start game: {message}");
-            ShowStatus("No games available! Watch a video to earn more.");
+            // 서버에서 받은 메시지 사용 (연결 실패 시 "Connection Failed" 표시)
+            if (string.IsNullOrEmpty(message))
+            {
+                ShowStatus("Connection Failed");
+            }
+            else
+            {
+                ShowStatus(message);
+            }
 
             // 2초 후 상태 패널 자동으로 숨기기
             StartCoroutine(HideStatusAfterDelay(2f));
@@ -392,7 +398,15 @@ public class TimeControlManager : MonoBehaviour
             StartCoroutine(ShowWarningAndQuit());
             return;
         }
-        
+
+        // 매치 실패 메시지 처리 (상대방 연결 끊김)
+        if (message.Trim() == "MATCH_FAILED")
+        {
+            ShowStatus("Match failed. Opponent disconnected.");
+            ResetUI();
+            return;
+        }
+
         // 서버에서 오는 메시지 형태: "Red OpponentName GameToken OpponentELO MyCurrentELO" 
         string[] parts = message.Split(' ');
         
@@ -406,6 +420,9 @@ public class TimeControlManager : MonoBehaviour
             myCurrentELO = parts[4];
 
             ShowStatus($"Match found! You are {playerColor}. Opponent: {opponentName}");
+
+            // Match Found 시 Cancel 버튼 숨김
+            if (cancelButton) cancelButton.SetActive(false);
 
             // 매치메이킹 WebSocket 정리 (게임에서 새로운 연결 생성)
             if (cancellationTokenSource != null)
@@ -432,19 +449,22 @@ public class TimeControlManager : MonoBehaviour
             myCurrentELO = SessionData.elo; // 기본값으로 SessionData 사용
             
             ShowStatus($"Match found! You are {playerColor}. Opponent: {opponentName}");
-            
+
+            // Match Found 시 Cancel 버튼 숨김
+            if (cancelButton) cancelButton.SetActive(false);
+
             // 매치메이킹 WebSocket 정리 (게임에서 새로운 연결 생성)
             if (cancellationTokenSource != null)
             {
                 cancellationTokenSource.Cancel();
             }
-            
+
             // 매치메이킹 WebSocket 종료
             _ = CloseWebSocketAsync();
-            
+
             // gameWebSocket은 null로 설정 (GameManager에서 새로 연결)
             gameWebSocket = null;
-            
+
             // 잠시 대기 후 게임 씬으로 이동
             StartCoroutine(LoadGameSceneDelayed());
         }
@@ -457,8 +477,10 @@ public class TimeControlManager : MonoBehaviour
             opponentELO = "Unknown";
             
             ShowStatus($"Match found! You are {playerColor}. Opponent: {opponentName}");
-            
-            
+
+            // Match Found 시 Cancel 버튼 숨김
+            if (cancelButton) cancelButton.SetActive(false);
+
             // 매치메이킹 WebSocket 정리 (게임에서 새로운 연결 생성)
             if (cancellationTokenSource != null)
             {
@@ -640,12 +662,10 @@ public class TimeControlManager : MonoBehaviour
     {
         // 클릭 카운트 증가
         computerButtonClickCount++;
-        Debug.Log($"[TimeControlManager] Computer button clicked {computerButtonClickCount} times");
 
         // 3번 클릭 시 전면 광고 표시
         if (computerButtonClickCount >= CLICKS_FOR_AD)
         {
-            Debug.Log("[TimeControlManager] Showing interstitial ad after 3 clicks");
 
             // 카운트 리셋
             computerButtonClickCount = 0;
@@ -659,12 +679,10 @@ public class TimeControlManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning("[TimeControlManager] Interstitial ad not ready");
                 }
             }
             else
             {
-                Debug.LogWarning("[TimeControlManager] InterstitialAdManager not found");
             }
         }
 
@@ -684,7 +702,6 @@ public class TimeControlManager : MonoBehaviour
 
         // 플레이어 색상을 랜덤으로 결정 (50% Red, 50% Blue)
         playerColor = UnityEngine.Random.value > 0.5f ? "Red" : "Blue";
-        Debug.Log($"[TIME_CONTROL] AI Difficulty: {difficulty}, Player Color: {playerColor}");
 
         // 패널 닫기
         if (aiDifficultyPanel != null)
@@ -724,7 +741,6 @@ public class TimeControlManager : MonoBehaviour
         // 게임 횟수 확인 (GameCreditManager)
         if (GameCreditManager.Instance == null)
         {
-            Debug.LogWarning("[TimeControlManager] GameCreditManager not found");
             if (availableGamesText != null)
             {
                 availableGamesText.text = "Available Games: N/A";
@@ -738,7 +754,6 @@ public class TimeControlManager : MonoBehaviour
         {
             checkComplete = true;
             UpdateAvailableGamesUI(0);
-            Debug.Log($"[TimeControlManager] Server game credit check complete: {msg}");
         });
 
         // 서버 응답 대기 (최대 5초)
@@ -752,7 +767,6 @@ public class TimeControlManager : MonoBehaviour
 
         if (!checkComplete)
         {
-            Debug.LogWarning("[TimeControlManager] Server check timeout");
             if (availableGamesText != null)
             {
                 availableGamesText.text = "Available Games: Error";
@@ -767,13 +781,11 @@ public class TimeControlManager : MonoBehaviour
     {
         if (GameCreditManager.Instance == null)
         {
-            Debug.LogWarning("[TimeControlManager] GameCreditManager not found");
             return true; // 매니저 없으면 그냥 진행
         }
 
         if (!GameCreditManager.Instance.CanPlayGame())
         {
-            Debug.Log("[TimeControlManager] No games available");
             ShowStatus("No games available! Watch a video to earn more.");
             return false;
         }
@@ -800,7 +812,6 @@ public class TimeControlManager : MonoBehaviour
 
         availableGamesText.text = $"Available Games: {availableGames}";
 
-        Debug.Log($"[TimeControlManager] ✅ UI updated - Available Games: {availableGames}");
     }
 
     /// <summary>
@@ -808,11 +819,9 @@ public class TimeControlManager : MonoBehaviour
     /// </summary>
     public void OnWatchVideoButtonClick()
     {
-        Debug.Log("[TimeControlManager] Watch Video button clicked");
 
         if (AdsManager.Instance == null)
         {
-            Debug.LogError("[TimeControlManager] AdsManager not found!");
             ShowStatus("Ads not available");
             StartCoroutine(HideStatusAfterDelay(2f));
             return;
@@ -828,7 +837,6 @@ public class TimeControlManager : MonoBehaviour
     /// </summary>
     void OnAdWatchedSuccess()
     {
-        Debug.Log("[TimeControlManager] Ad watched successfully!");
         ShowStatus("Reward granted! +1 game added.");
         UpdateAvailableGamesUI(0);
 
@@ -841,7 +849,6 @@ public class TimeControlManager : MonoBehaviour
     /// </summary>
     void OnAdWatchFailed()
     {
-        Debug.Log("[TimeControlManager] Ad watch failed");
         ShowStatus("Ad not available. Please try again later.");
 
         // 2초 후 상태 패널 닫기

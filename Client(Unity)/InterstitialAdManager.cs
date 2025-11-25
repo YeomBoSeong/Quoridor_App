@@ -12,8 +12,8 @@ public class InterstitialAdManager : MonoBehaviour
     public static InterstitialAdManager Instance { get; private set; }
 
     [Header("AdMob Settings")]
-    [SerializeField] private string androidAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Interstitial Ad Unit ID
-    [SerializeField] private string iosAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Interstitial Ad Unit ID
+    [SerializeField] private string androidAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"; // 전면 광고 단위 ID로 변경하세요
+    [SerializeField] private string iosAdUnitId = "ca-app-pub-3940256099942544/4411468910"; // iOS 테스트 ID
 
     // 테스트용 전면 광고 단위 ID (개발 중 사용)
     private const string TEST_ANDROID_AD_UNIT = "ca-app-pub-3940256099942544/1033173712";
@@ -60,7 +60,6 @@ public class InterstitialAdManager : MonoBehaviour
         adUnitId = TEST_ANDROID_AD_UNIT; // 에디터에서는 테스트 ID 사용
 #endif
 
-        Debug.Log($"[InterstitialAdManager] Initializing with Ad Unit ID: {adUnitId}, Test Mode: {useTestAds}");
 
         // 어린이 지향 설정 (COPPA 준수)
         RequestConfiguration requestConfiguration = new RequestConfiguration
@@ -70,7 +69,6 @@ public class InterstitialAdManager : MonoBehaviour
         };
 
         MobileAds.SetRequestConfiguration(requestConfiguration);
-        Debug.Log("[InterstitialAdManager] Child-directed treatment enabled with G rating");
 
         isInitialized = true;
 
@@ -85,7 +83,6 @@ public class InterstitialAdManager : MonoBehaviour
     {
         if (!isInitialized)
         {
-            Debug.LogWarning("[InterstitialAdManager] Not initialized yet");
             return;
         }
 
@@ -96,7 +93,6 @@ public class InterstitialAdManager : MonoBehaviour
             interstitialAd = null;
         }
 
-        Debug.Log($"[InterstitialAdManager] Loading interstitial ad: {adUnitId}");
 
         // 광고 요청 생성
         AdRequest adRequest = new AdRequest();
@@ -106,18 +102,15 @@ public class InterstitialAdManager : MonoBehaviour
         {
             if (loadError != null)
             {
-                Debug.LogError($"[InterstitialAdManager] Failed to load ad: {loadError.GetMessage()}");
                 isAdLoaded = false;
                 return;
             }
             else if (ad == null)
             {
-                Debug.LogError("[InterstitialAdManager] Interstitial ad is null");
                 isAdLoaded = false;
                 return;
             }
 
-            Debug.Log($"[InterstitialAdManager] Interstitial ad loaded successfully");
             interstitialAd = ad;
             isAdLoaded = true;
 
@@ -134,13 +127,11 @@ public class InterstitialAdManager : MonoBehaviour
         // 광고가 열릴 때
         ad.OnAdFullScreenContentOpened += () =>
         {
-            Debug.Log("[InterstitialAdManager] Interstitial ad opened");
         };
 
         // 광고가 닫힐 때
         ad.OnAdFullScreenContentClosed += () =>
         {
-            Debug.Log("[InterstitialAdManager] Interstitial ad closed");
 
             // 광고가 닫히면 다음 광고 로드
             isAdLoaded = false;
@@ -153,7 +144,6 @@ public class InterstitialAdManager : MonoBehaviour
         // 광고 표시 실패 시
         ad.OnAdFullScreenContentFailed += (AdError error) =>
         {
-            Debug.LogError($"[InterstitialAdManager] Interstitial ad failed to show: {error.GetMessage()}");
             isAdLoaded = false;
             OnAdFailed?.Invoke();
 
@@ -164,7 +154,6 @@ public class InterstitialAdManager : MonoBehaviour
         // 광고 수익 발생
         ad.OnAdPaid += (AdValue adValue) =>
         {
-            Debug.Log($"[InterstitialAdManager] Ad paid: {adValue.Value} {adValue.CurrencyCode}");
         };
     }
 
@@ -175,19 +164,16 @@ public class InterstitialAdManager : MonoBehaviour
     {
         if (!isInitialized)
         {
-            Debug.LogWarning("[InterstitialAdManager] Not initialized");
             OnAdFailed?.Invoke();
             return;
         }
 
         if (interstitialAd != null && isAdLoaded)
         {
-            Debug.Log("[InterstitialAdManager] Showing interstitial ad");
             interstitialAd.Show();
         }
         else
         {
-            Debug.LogWarning("[InterstitialAdManager] Interstitial ad not ready. Loading now...");
             LoadInterstitialAd();
             OnAdFailed?.Invoke();
         }

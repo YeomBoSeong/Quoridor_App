@@ -74,12 +74,10 @@ public class FightSocketManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"Fight WebSocket connection failed. State: {webSocket.State}");
             }
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Fight WebSocket connection failed: {ex.Message}");
         }
     }
 
@@ -107,7 +105,6 @@ public class FightSocketManager : MonoBehaviour
                     // fight 메시지인 경우에만 로그 출력
                     if (message.StartsWith("fight "))
                     {
-                        Debug.Log($"[FIGHT] Received fight request: {message}");
                     }
 
                     // 메인 스레드에서 처리하기 위해 큐에 저장
@@ -124,7 +121,6 @@ public class FightSocketManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Fight WebSocket receive error: {ex.Message}");
         }
         finally
         {
@@ -165,6 +161,16 @@ public class FightSocketManager : MonoBehaviour
                 }
                 break;
 
+            case "declined":
+                // "declined 거절한사람 게임모드" - 대전 요청 거절됨
+                if (parts.Length >= 3)
+                {
+                    string decliner = parts[1];
+                    string gameMode = parts[2];
+                    HandleFightDeclined(decliner, gameMode);
+                }
+                break;
+
             default:
                 // 상태 응답 메시지 처리: "유저네임 상태 게임모드"
                 if (parts.Length >= 3)
@@ -195,7 +201,6 @@ public class FightSocketManager : MonoBehaviour
         string myCurrentELO = parts[4];
         string gameMode = parts.Length >= 6 ? parts[5] : "Rapid"; // 기본값은 Rapid
 
-        Debug.Log($"[FIGHT] Game created - Color: {playerColor}, Opponent: {opponentName}, Token: {gameToken}, Mode: {gameMode}");
 
         // TimeControlManager의 정적 변수에 저장 (GameManager에서 읽을 수 있도록)
         TimeControlManager.playerColor = playerColor;
@@ -275,7 +280,6 @@ public class FightSocketManager : MonoBehaviour
     {
         if (webSocket == null || webSocket.State != WebSocketState.Open)
         {
-            Debug.LogError("Fight WebSocket is not connected!");
             return;
         }
 
@@ -287,7 +291,6 @@ public class FightSocketManager : MonoBehaviour
     {
         if (webSocket == null || webSocket.State != WebSocketState.Open)
         {
-            Debug.LogError("Fight WebSocket is not connected!");
             return;
         }
 
@@ -300,7 +303,6 @@ public class FightSocketManager : MonoBehaviour
     {
         if (webSocket == null || webSocket.State != WebSocketState.Open)
         {
-            Debug.LogError("Fight WebSocket is not connected!");
             return;
         }
 
@@ -312,7 +314,6 @@ public class FightSocketManager : MonoBehaviour
     {
         if (webSocket == null || webSocket.State != WebSocketState.Open)
         {
-            Debug.LogError("Fight WebSocket is not connected!");
             return;
         }
 
@@ -329,7 +330,23 @@ public class FightSocketManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Failed to send fight message: {ex.Message}");
+        }
+    }
+
+    void HandleFightDeclined(string decliner, string gameMode)
+    {
+        Debug.Log($"[FightSocketManager] Fight request declined by {decliner} ({gameMode})");
+
+        // FriendItemUI를 찾아서 상태 메시지 표시
+        FriendItemUI friendItem = FriendItemUI.GetFriendItemByUsername(decliner);
+        if (friendItem != null)
+        {
+            // 거절 메시지 표시
+            friendItem.ShowStatusMessage("declined");
+        }
+        else
+        {
+            Debug.LogWarning($"[FightSocketManager] Cannot find FriendItemUI for {decliner}");
         }
     }
 

@@ -9,8 +9,8 @@ using GoogleMobileAds.Api;
 public class BannerAdManager : MonoBehaviour
 {
     [Header("AdMob Settings")]
-    [SerializeField] private string androidAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Banner Ad Unit ID
-    [SerializeField] private string iosAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY"; // TODO: Replace with your actual Banner Ad Unit ID
+    [SerializeField] private string androidAdUnitId = "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"; // 배너 광고 단위 ID로 변경하세요
+    [SerializeField] private string iosAdUnitId = "ca-app-pub-3940256099942544/2934735716"; // iOS 테스트 ID
 
     // 테스트용 배너 광고 단위 ID (개발 중 사용)
     private const string TEST_ANDROID_AD_UNIT = "ca-app-pub-3940256099942544/6300978111";
@@ -35,7 +35,6 @@ public class BannerAdManager : MonoBehaviour
         adUnitId = TEST_ANDROID_AD_UNIT; // 에디터에서는 테스트 ID 사용
 #endif
 
-        Debug.Log($"[BannerAdManager] Initializing banner ad with ID: {adUnitId}, Test Mode: {useTestAds}");
 
         // 어린이 지향 설정 (COPPA 준수)
         RequestConfiguration requestConfiguration = new RequestConfiguration
@@ -45,7 +44,6 @@ public class BannerAdManager : MonoBehaviour
         };
 
         MobileAds.SetRequestConfiguration(requestConfiguration);
-        Debug.Log("[BannerAdManager] Child-directed treatment enabled with G rating");
 
         // 배너 광고 로드
         LoadBannerAd();
@@ -76,7 +74,6 @@ public class BannerAdManager : MonoBehaviour
         AdRequest adRequest = new AdRequest();
 
         // 배너 광고 로드
-        Debug.Log("[BannerAdManager] Loading banner ad...");
         bannerView.LoadAd(adRequest);
     }
 
@@ -88,37 +85,31 @@ public class BannerAdManager : MonoBehaviour
         // 광고 로드 완료
         bannerView.OnBannerAdLoaded += () =>
         {
-            Debug.Log("[BannerAdManager] Banner ad loaded successfully");
         };
 
         // 광고 로드 실패
         bannerView.OnBannerAdLoadFailed += (LoadAdError error) =>
         {
-            Debug.LogError($"[BannerAdManager] Banner ad failed to load: {error.GetMessage()}");
         };
 
         // 광고 클릭 시
         bannerView.OnAdClicked += () =>
         {
-            Debug.Log("[BannerAdManager] Banner ad clicked");
         };
 
         // 광고로 인한 앱 이탈 시
         bannerView.OnAdFullScreenContentOpened += () =>
         {
-            Debug.Log("[BannerAdManager] Banner ad full screen content opened");
         };
 
         // 전체 화면 콘텐츠 닫힘
         bannerView.OnAdFullScreenContentClosed += () =>
         {
-            Debug.Log("[BannerAdManager] Banner ad full screen content closed");
         };
 
         // 광고 수익 발생
         bannerView.OnAdPaid += (AdValue adValue) =>
         {
-            Debug.Log($"[BannerAdManager] Banner ad paid: {adValue.Value} {adValue.CurrencyCode}");
         };
     }
 
@@ -130,7 +121,6 @@ public class BannerAdManager : MonoBehaviour
         if (bannerView != null)
         {
             bannerView.Hide();
-            Debug.Log("[BannerAdManager] Banner ad hidden");
         }
     }
 
@@ -142,7 +132,6 @@ public class BannerAdManager : MonoBehaviour
         if (bannerView != null)
         {
             bannerView.Show();
-            Debug.Log("[BannerAdManager] Banner ad shown");
         }
     }
 
@@ -155,7 +144,6 @@ public class BannerAdManager : MonoBehaviour
         {
             bannerView.Destroy();
             bannerView = null;
-            Debug.Log("[BannerAdManager] Banner ad destroyed");
         }
     }
 }

@@ -123,11 +123,9 @@ public class FriendsManager : MonoBehaviour
                 confirmUnfriendButton,
                 cancelUnfriendButton
             );
-            Debug.Log("[FriendsManager] Unfriend panel registered to FriendItemUI");
         }
         else
         {
-            Debug.LogWarning("[FriendsManager] Unfriend panel components are not assigned in Inspector!");
         }
     }
 
@@ -510,16 +508,13 @@ public class FriendsManager : MonoBehaviour
 
     IEnumerator RemoveFriendCoroutine(string friendUsername)
     {
-        Debug.Log($"[FriendsManager] Starting RemoveFriendCoroutine for: {friendUsername}");
 
         string url = $"{ServerConfig.GetHttpUrl()}/friends/remove";
-        Debug.Log($"[FriendsManager] URL: {url}");
 
         // 요청 데이터 생성
         AddFriendRequestData requestData = new AddFriendRequestData();
         requestData.username = friendUsername;
         string jsonData = JsonUtility.ToJson(requestData);
-        Debug.Log($"[FriendsManager] Request JSON: {jsonData}");
 
         using (UnityWebRequest request = new UnityWebRequest(url, "DELETE"))
         {
@@ -530,34 +525,22 @@ public class FriendsManager : MonoBehaviour
             request.SetRequestHeader("Authorization", $"Bearer {SessionData.token}");
             request.timeout = 10;
 
-            Debug.Log($"[FriendsManager] Sending DELETE request to server...");
             yield return request.SendWebRequest();
 
-            Debug.Log($"[FriendsManager] Request completed. Result: {request.result}");
-            Debug.Log($"[FriendsManager] Response Code: {request.responseCode}");
 
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
-                Debug.Log($"[FriendsManager] Server Response: {responseText}");
-                Debug.Log($"[FriendsManager] Successfully removed friend: {friendUsername}");
 
                 // 친구 목록 새로고침
-                Debug.Log($"[FriendsManager] Refreshing friend list...");
                 RefreshFriendsList();
-                Debug.Log($"[FriendsManager] Friend list refresh requested");
             }
             else
             {
                 string errorText = request.downloadHandler?.text ?? "No error text";
-                Debug.LogError($"[FriendsManager] Failed to remove friend: {friendUsername}");
-                Debug.LogError($"[FriendsManager] Error: {request.error}");
-                Debug.LogError($"[FriendsManager] Response Code: {request.responseCode}");
-                Debug.LogError($"[FriendsManager] Response Text: {errorText}");
             }
         }
 
-        Debug.Log($"[FriendsManager] RemoveFriendCoroutine completed for: {friendUsername}");
     }
 }
 

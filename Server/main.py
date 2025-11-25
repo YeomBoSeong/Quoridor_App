@@ -660,17 +660,17 @@ async def notify_opponent_disconnect(current_session, disconnected_user):
     """상대방에게 플레이어 연결 끊김을 알리는 함수"""
     if not current_session or not disconnected_user:
         return
-        
+
     try:
         tc, gt = current_session
         if (tc not in Game_Session or gt not in Game_Session[tc]):
             return
-            
+
         session = Game_Session[tc][gt]
         opponent_socket = None
         winner_name = None
         loser_name = disconnected_user
-        
+
         # 연결이 끊어진 플레이어의 상대방 찾기
         if disconnected_user == session["Player1"]:
             opponent_socket = session.get("Player2_Socket")
@@ -678,7 +678,24 @@ async def notify_opponent_disconnect(current_session, disconnected_user):
         elif disconnected_user == session["Player2"]:
             opponent_socket = session.get("Player1_Socket")
             winner_name = session["Player1"]
-        
+
+        # 연결 끊긴 플레이어(패자)의 게임 크레딧 차감
+        if loser_name:
+            try:
+                db_credit = SessionLocal()
+                loser_user = db_credit.execute(select(User).where(User.username == loser_name)).scalar_one_or_none()
+                if loser_user:
+                    loser_credit = get_or_create_game_credit(db_credit, loser_user.id)
+                    if loser_credit.available_games > 0:
+                        loser_credit.available_games -= 1
+                        db_credit.commit()
+                        print(f"[Disconnect] Game credit consumed for disconnected player {loser_name}: {loser_credit.available_games} remaining")
+                    else:
+                        print(f"[Disconnect] No game credit to consume for {loser_name}")
+                db_credit.close()
+            except Exception as e:
+                print(f"Error consuming game credit for disconnected player: {e}")
+
         # ELO 업데이트 처리
         if winner_name and loser_name:
             try:
@@ -963,12 +980,12 @@ async def game(websocket: WebSocket):
         else:
             # 이미 생성된 게임 히스토리 ID 가져오기
             current_game_history_id = session.get("game_history_id")
-        
+
         # 이후 메시지들 처리
         while True:
             message = await websocket.receive_text()
             parts = message.strip().split()
-            
+
             if len(parts) < 7:
                 print(f"Invalid message format: {message}")
                 continue

@@ -56,7 +56,6 @@ public class GameCreditManager : MonoBehaviour
             lastResetDate = DateTime.Parse(lastResetStr);
         }
 
-        Debug.Log($"[GameCreditManager] Local cache loaded: {availableGames} games");
     }
 
     /// <summary>
@@ -81,7 +80,6 @@ public class GameCreditManager : MonoBehaviour
     {
         if (!SessionData.IsValidSession())
         {
-            Debug.LogWarning("[GameCreditManager] No valid session. Using local cache.");
             yield break;
         }
 
@@ -97,7 +95,6 @@ public class GameCreditManager : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string json = request.downloadHandler.text;
-                Debug.Log($"[GameCreditManager] Server response JSON: {json}");
 
                 GameCreditResponse response = JsonUtility.FromJson<GameCreditResponse>(json);
 
@@ -107,11 +104,9 @@ public class GameCreditManager : MonoBehaviour
                 SaveLocalCache();
                 OnGamesChanged?.Invoke(availableGames);
 
-                Debug.Log($"[GameCreditManager] ✅ Server data loaded - Available Games: {availableGames}, can_play: {response.can_play}");
             }
             else
             {
-                Debug.LogWarning($"[GameCreditManager] Failed to refresh from server: {request.error}. Using cache.");
             }
         }
     }
@@ -144,7 +139,6 @@ public class GameCreditManager : MonoBehaviour
     {
         if (!SessionData.IsValidSession())
         {
-            Debug.LogWarning("[GameCreditManager] No valid session");
             callback?.Invoke(false, "No valid session");
             yield break;
         }
@@ -161,7 +155,6 @@ public class GameCreditManager : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string json = request.downloadHandler.text;
-                Debug.Log($"[GameCreditManager] CheckCanPlayGame Server response JSON: {json}");
 
                 GameCreditResponse response = JsonUtility.FromJson<GameCreditResponse>(json);
 
@@ -171,15 +164,13 @@ public class GameCreditManager : MonoBehaviour
                 OnGamesChanged?.Invoke(availableGames);
 
                 bool canPlay = response.can_play;
-                string message = canPlay ? "Can play" : "No games available";
+                string message = canPlay ? "Can play" : "No games available! Watch a video to earn more.";
 
-                Debug.Log($"[GameCreditManager] ✅ Server check - Available Games: {availableGames}, can_play: {canPlay}");
                 callback?.Invoke(canPlay, message);
             }
             else
             {
-                Debug.LogError($"[GameCreditManager] Failed to check from server: {request.error}");
-                callback?.Invoke(false, $"Server error: {request.error}");
+                callback?.Invoke(false, "Connection Failed");
             }
         }
     }
@@ -196,7 +187,6 @@ public class GameCreditManager : MonoBehaviour
     {
         if (!SessionData.IsValidSession())
         {
-            Debug.LogWarning("[GameCreditManager] No valid session");
             callback?.Invoke(false);
             yield break;
         }
@@ -220,18 +210,15 @@ public class GameCreditManager : MonoBehaviour
                     availableGames = response.remaining_games;
                     SaveLocalCache();
                     OnGamesChanged?.Invoke(availableGames);
-                    Debug.Log($"[GameCreditManager] Game consumed. Remaining: {availableGames}");
                     callback?.Invoke(true);
                 }
                 else
                 {
-                    Debug.LogWarning($"[GameCreditManager] {response.message}");
                     callback?.Invoke(false);
                 }
             }
             else
             {
-                Debug.LogError($"[GameCreditManager] Failed to consume game: {request.error}");
                 callback?.Invoke(false);
             }
         }
@@ -249,7 +236,6 @@ public class GameCreditManager : MonoBehaviour
     {
         if (!SessionData.IsValidSession())
         {
-            Debug.LogWarning("[GameCreditManager] No valid session");
             yield break;
         }
 
@@ -272,12 +258,10 @@ public class GameCreditManager : MonoBehaviour
                     availableGames = response.remaining_games;
                     SaveLocalCache();
                     OnGamesChanged?.Invoke(availableGames);
-                    Debug.Log($"[GameCreditManager] {response.message}");
                 }
             }
             else
             {
-                Debug.LogError($"[GameCreditManager] Failed to add game from ad: {request.error}");
             }
         }
     }

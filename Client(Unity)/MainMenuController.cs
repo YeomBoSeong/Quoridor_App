@@ -52,12 +52,10 @@ public class MainMenuController : MonoBehaviour
         {
             if (!string.IsNullOrEmpty(settingSceneName))
             {
-                Debug.Log($"Loading {settingSceneName}...");
                 SceneManager.LoadScene(settingSceneName);
             }
             else
             {
-                Debug.LogError("Setting scene name is not set!");
             }
         }));
     }
@@ -66,7 +64,6 @@ public class MainMenuController : MonoBehaviour
     {
         StartCoroutine(ValidateSessionAndProceed(() => 
         {
-            Debug.Log("History feature not implemented yet");
         }));
     }
 
@@ -74,7 +71,6 @@ public class MainMenuController : MonoBehaviour
     {
         StartCoroutine(ValidateSessionAndProceed(() => 
         {
-            Debug.Log("Account feature not implemented yet");
         }));
     }
 
@@ -91,7 +87,6 @@ public class MainMenuController : MonoBehaviour
 
     public void OnClickExit()
     {
-        Debug.Log("Exit button clicked. Quitting application...");
 
         #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
@@ -105,7 +100,6 @@ public class MainMenuController : MonoBehaviour
     {
         if (!SessionData.IsValidSession())
         {
-            Debug.Log("No valid session found. Redirecting to login.");
             GoToLogin();
             yield break;
         }
@@ -121,17 +115,14 @@ public class MainMenuController : MonoBehaviour
             
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("Session validation successful");
                 onSuccess?.Invoke();
             }
             else
             {
                 long statusCode = request.responseCode;
-                Debug.Log($"Session validation failed with status: {statusCode}");
                 
                 if (statusCode == 401)
                 {
-                    Debug.Log("Session expired due to login from another device. Showing warning and closing application.");
                     SessionData.ClearSession();
                     
                     // 경고 패널 표시 후 3초 후 종료
@@ -139,7 +130,6 @@ public class MainMenuController : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log($"Session validation error: {request.error}");
                     // 네트워크 에러 등의 경우 그냥 진행 (선택사항)
                     onSuccess?.Invoke();
                 }

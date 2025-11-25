@@ -23,7 +23,6 @@ public class BackgroundColorController : MonoBehaviour
         LoadSavedColor();
         UpdateColorText();
         ApplyColorToAllPanels();
-        Debug.Log($"[BackgroundColorController] Initialized with color: {colors[currentIndex]}");
     }
 
     /// <summary>
@@ -38,7 +37,6 @@ public class BackgroundColorController : MonoBehaviour
         SaveColor();
         ApplyColorToAllPanels();
 
-        Debug.Log($"[BackgroundColorController] Right button clicked -> {colors[currentIndex]} (index: {currentIndex})");
     }
 
     /// <summary>
@@ -53,7 +51,6 @@ public class BackgroundColorController : MonoBehaviour
         SaveColor();
         ApplyColorToAllPanels();
 
-        Debug.Log($"[BackgroundColorController] Left button clicked -> {colors[currentIndex]} (index: {currentIndex})");
     }
 
     /// <summary>
@@ -67,7 +64,6 @@ public class BackgroundColorController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[BackgroundColorController] ColorText is not assigned in Inspector!");
         }
     }
 
@@ -92,12 +88,10 @@ public class BackgroundColorController : MonoBehaviour
                 UpdateColorText();
                 SaveColor();
                 ApplyColorToAllPanels();
-                Debug.Log($"[BackgroundColorController] Color set to: {colors[currentIndex]}");
                 return;
             }
         }
 
-        Debug.LogWarning($"[BackgroundColorController] Color '{colorName}' not found in the list!");
     }
 
     /// <summary>
@@ -113,7 +107,6 @@ public class BackgroundColorController : MonoBehaviour
                 if (colors[i].Equals(savedColor, System.StringComparison.OrdinalIgnoreCase))
                 {
                     currentIndex = i;
-                    Debug.Log($"[BackgroundColorController] Loaded saved color: {savedColor}");
                     return;
                 }
             }
@@ -121,7 +114,6 @@ public class BackgroundColorController : MonoBehaviour
 
         // 저장된 색상이 없으면 기본값 (Blue)
         currentIndex = 0;
-        Debug.Log($"[BackgroundColorController] No saved color, using default: {colors[currentIndex]}");
     }
 
     /// <summary>
@@ -131,7 +123,6 @@ public class BackgroundColorController : MonoBehaviour
     {
         PlayerPrefs.SetString(BACKGROUND_COLOR_KEY, colors[currentIndex]);
         PlayerPrefs.Save();
-        Debug.Log($"[BackgroundColorController] Saved color: {colors[currentIndex]}");
     }
 
     /// <summary>

@@ -15,15 +15,12 @@ public static class SessionData
         isLoggedIn = true;
 
         // 로그인 시 이전 계정의 IAP 및 게임 크레딧 데이터 초기화 (안전장치)
-        Debug.Log($"[SessionData] 🔄 Logging in user: {userUsername}, clearing previous account's IAP data...");
         ClearIAPData();
 
-        Debug.Log($"[SessionData] ✅ Login complete for user: {userUsername}");
     }
     
     public static void ClearSession()
     {
-        Debug.Log($"[SessionData] 🔄 Clearing session for user: {username}");
 
         username = null;
         token = null;
@@ -33,7 +30,6 @@ public static class SessionData
         // IAP 및 게임 크레딧 관련 PlayerPrefs 클리어 (계정 분리)
         ClearIAPData();
 
-        Debug.Log("[SessionData] ✅ Session cleared completely");
     }
     
     public static bool IsValidSession()
@@ -52,7 +48,6 @@ public static class SessionData
     /// </summary>
     private static void ClearIAPData()
     {
-        Debug.Log("[SessionData] 🗑️ Clearing IAP and game credit PlayerPrefs...");
 
         // IAPManager 관련
         PlayerPrefs.DeleteKey("IsProSubscribed");
@@ -64,6 +59,5 @@ public static class SessionData
 
         PlayerPrefs.Save();
 
-        Debug.Log("[SessionData] ✅ IAP and game credit data cleared from PlayerPrefs");
     }
 }

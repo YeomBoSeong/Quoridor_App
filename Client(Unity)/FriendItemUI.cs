@@ -188,7 +188,6 @@ public class FriendItemUI : MonoBehaviour
 
     void OnRemoveButtonClicked(string friendUsername)
     {
-        Debug.Log($"[FriendItemUI] OnRemoveButtonClicked called for: {friendUsername}");
 
         // 삭제할 친구 이름 저장
         friendToRemove = friendUsername;
@@ -404,20 +403,35 @@ public class FriendItemUI : MonoBehaviour
             case "online":
                 message = "Sent request!";
                 break;
+            case "declined":
+                message = "Your friend declined the battle request.";
+                break;
             default:
                 message = $"Friend status: {status}";
                 break;
         }
 
+        // 디버그 로그 추가
+        Debug.Log($"[FriendItemUI] ShowStatusMessage: {message}");
+
         // 상태 메시지 패널 표시
         if (statusMessagePanel != null)
         {
             statusMessagePanel.SetActive(true);
+            Debug.Log("[FriendItemUI] Status message panel activated");
+        }
+        else
+        {
+            Debug.LogWarning("[FriendItemUI] statusMessagePanel is null! Cannot show message UI.");
         }
 
         if (statusMessageText != null)
         {
             statusMessageText.text = message;
+        }
+        else
+        {
+            Debug.LogWarning("[FriendItemUI] statusMessageText is null! Cannot show message text.");
         }
 
     }
@@ -496,50 +510,39 @@ public class FriendItemUI : MonoBehaviour
             sharedCancelRemoveButton.onClick.AddListener(() => OnCancelRemoveButtonClickedStatic());
         }
 
-        Debug.Log("[FriendItemUI] Shared remove confirmation panel registered");
     }
 
     void ShowRemoveConfirmation(string friendUsername)
     {
-        Debug.Log($"[FriendItemUI] ShowRemoveConfirmation called for: {friendUsername}");
-        Debug.Log($"[FriendItemUI] sharedRemoveConfirmationPanel is null: {sharedRemoveConfirmationPanel == null}");
 
         if (sharedRemoveConfirmationPanel == null)
         {
-            Debug.LogError("[FriendItemUI] Shared remove confirmation panel not registered! Make sure FriendsManager registered the panel.");
             return;
         }
 
-        Debug.Log($"[FriendItemUI] Panel active before SetActive: {sharedRemoveConfirmationPanel.activeSelf}");
 
         // 패널 표시
         sharedRemoveConfirmationPanel.SetActive(true);
 
-        Debug.Log($"[FriendItemUI] Panel active after SetActive: {sharedRemoveConfirmationPanel.activeSelf}");
 
         // 텍스트 설정
         if (sharedRemoveConfirmationText != null)
         {
             sharedRemoveConfirmationText.text = $"Do you want to unfriend {friendUsername}?";
-            Debug.Log($"[FriendItemUI] Text set to: {sharedRemoveConfirmationText.text}");
         }
         else
         {
-            Debug.LogError("[FriendItemUI] sharedRemoveConfirmationText is null!");
         }
 
-        Debug.Log($"[FriendItemUI] Successfully showing remove confirmation for: {friendUsername}");
     }
 
     static void OnConfirmRemoveButtonClickedStatic()
     {
         if (string.IsNullOrEmpty(friendToRemove))
         {
-            Debug.LogError("[FriendItemUI] Friend to remove is null or empty!");
             return;
         }
 
-        Debug.Log($"[FriendItemUI] Confirmed removal of friend: {friendToRemove}");
 
         // FriendsManager에서 삭제 처리 (타이밍 문제 방지)
         FriendsManager.RemoveFriendStatic(friendToRemove);
@@ -556,7 +559,6 @@ public class FriendItemUI : MonoBehaviour
 
     static void OnCancelRemoveButtonClickedStatic()
     {
-        Debug.Log("[FriendItemUI] Cancelled friend removal");
 
         // 패널 닫기
         if (sharedRemoveConfirmationPanel != null)

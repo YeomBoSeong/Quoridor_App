@@ -99,7 +99,6 @@ public class NativeImagePicker : MonoBehaviour
     {
         NativeGallery.GetImageFromGallery((path) =>
         {
-            Debug.Log($"Image picker returned path: {path}");
 
             if (path != null)
             {
@@ -108,18 +107,15 @@ public class NativeImagePicker : MonoBehaviour
 
                 if (texture != null)
                 {
-                    Debug.Log($"Image loaded successfully: {texture.width}x{texture.height}");
                     onImageSelected?.Invoke(texture);
                 }
                 else
                 {
-                    Debug.LogError("Failed to load image from path");
                     onImageSelectionFailed?.Invoke("Failed to load image");
                 }
             }
             else
             {
-                Debug.Log("Image selection cancelled by user");
                 onImageSelectionFailed?.Invoke("No file selected");
             }
         }, "Select Profile Image");
@@ -128,7 +124,6 @@ public class NativeImagePicker : MonoBehaviour
     void TakePhotoAndroid()
     {
         // NativeGallery 플러그인은 카메라 기능을 지원하지 않으므로 갤러리 선택으로 대체
-        Debug.Log("Camera feature not supported by NativeGallery plugin. Using gallery instead.");
         PickImageAndroid();
     }
     #endif
@@ -138,7 +133,6 @@ public class NativeImagePicker : MonoBehaviour
     {
         NativeGallery.GetImageFromGallery((path) =>
         {
-            Debug.Log($"Image picker returned path: {path}");
 
             if (path != null)
             {
@@ -147,18 +141,15 @@ public class NativeImagePicker : MonoBehaviour
 
                 if (texture != null)
                 {
-                    Debug.Log($"Image loaded successfully: {texture.width}x{texture.height}");
                     onImageSelected?.Invoke(texture);
                 }
                 else
                 {
-                    Debug.LogError("Failed to load image from path");
                     onImageSelectionFailed?.Invoke("Failed to load image");
                 }
             }
             else
             {
-                Debug.Log("Image selection cancelled by user");
                 onImageSelectionFailed?.Invoke("No file selected");
             }
         }, "Select Profile Image");
@@ -167,7 +158,6 @@ public class NativeImagePicker : MonoBehaviour
     void TakePhotoiOS()
     {
         // NativeGallery 플러그인은 카메라 기능을 지원하지 않으므로 갤러리 선택으로 대체
-        Debug.Log("Camera feature not supported by NativeGallery plugin. Using gallery instead.");
         PickImageiOS();
     }
     #endif
@@ -252,7 +242,6 @@ public class NativeImagePicker : MonoBehaviour
 
                 if (texture.LoadImage(imageData))
                 {
-                    Debug.Log($"Profile image loaded: {selectedPath}");
                     onImageSelected?.Invoke(texture);
                 }
                 else
@@ -262,7 +251,6 @@ public class NativeImagePicker : MonoBehaviour
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Error loading image: {e.Message}");
                 onImageSelectionFailed?.Invoke($"Error loading image: {e.Message}");
             }
         }

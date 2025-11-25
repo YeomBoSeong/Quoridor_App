@@ -34,7 +34,6 @@ public class FightRequestManager : MonoBehaviour
         {
             if (obj.name == "FightRequestPanel" && obj.scene.name == "DontDestroyOnLoad")
             {
-                Debug.Log("[FIGHT] Found existing DontDestroyOnLoad FightRequestPanel, using it");
                 fightRequestPanel = obj;
                 FindUIComponents();
                 SetupUI();
@@ -58,7 +57,6 @@ public class FightRequestManager : MonoBehaviour
             if (obj.name.Contains("FightRequestPanel") && obj.scene.name != "" && obj.scene.name != "DontDestroyOnLoad")
             {
                 foundPanel = obj;
-                Debug.Log($"[FIGHT] Found GameObject '{obj.name}' in scene '{obj.scene.name}'");
                 break;
             }
         }
@@ -76,7 +74,6 @@ public class FightRequestManager : MonoBehaviour
                     if (obj.scene.name != "" && obj.scene.name != "DontDestroyOnLoad")
                     {
                         foundPanel = obj;
-                        Debug.Log($"[FIGHT] Found GameObject by keyword '{obj.name}' in scene '{obj.scene.name}'");
                         break;
                     }
                 }
@@ -90,12 +87,10 @@ public class FightRequestManager : MonoBehaviour
             // FightRequestPanel도 DontDestroyOnLoad로 설정
             DontDestroyOnLoad(fightRequestPanel);
 
-            Debug.Log($"[FIGHT] Found FightRequestPanel '{foundPanel.name}' in scene '{foundPanel.scene.name}' and set DontDestroyOnLoad");
             FindUIComponents();
         }
         else
         {
-            Debug.LogError("[FIGHT] FightRequestPanel not found in any scene! Please add the panel to a scene.");
             ListAllGameObjectsForDebug();
             return;
         }
@@ -103,18 +98,15 @@ public class FightRequestManager : MonoBehaviour
 
     void ListAllGameObjectsForDebug()
     {
-        Debug.Log("[FIGHT] Listing all GameObjects for debugging:");
         GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
         int count = 0;
         foreach (GameObject obj in allObjects)
         {
             if (obj.scene.name != "" && obj.scene.name != "DontDestroyOnLoad")
             {
-                Debug.Log($"[FIGHT] GameObject: '{obj.name}' in scene '{obj.scene.name}'");
                 count++;
                 if (count > 20) // 너무 많은 로그 방지
                 {
-                    Debug.Log("[FIGHT] ... (showing first 20 objects)");
                     break;
                 }
             }
@@ -129,7 +121,6 @@ public class FightRequestManager : MonoBehaviour
         fightRequestText = fightRequestPanel.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
         if (fightRequestText == null)
         {
-            Debug.LogWarning("[FIGHT] TextMeshProUGUI not found in FightRequestPanel! Searching by name...");
 
             // 이름으로 텍스트 찾기
             Transform[] allChildren = fightRequestPanel.GetComponentsInChildren<Transform>(true);
@@ -140,7 +131,6 @@ public class FightRequestManager : MonoBehaviour
                     fightRequestText = child.GetComponent<TMPro.TextMeshProUGUI>();
                     if (fightRequestText != null)
                     {
-                        Debug.Log($"[FIGHT] Found text component in '{child.name}'");
                         break;
                     }
                 }
@@ -153,24 +143,20 @@ public class FightRequestManager : MonoBehaviour
         foreach (Button btn in buttons)
         {
             string btnName = btn.name.ToLower();
-            Debug.Log($"[FIGHT] Found button: '{btn.name}'");
 
             if (btnName.Contains("accept") || btnName.Contains("yes"))
             {
                 acceptButton = btn;
-                Debug.Log($"[FIGHT] Assigned Accept button: '{btn.name}'");
             }
             else if (btnName.Contains("decline") || btnName.Contains("no") || btnName.Contains("cancel"))
             {
                 declineButton = btn;
-                Debug.Log($"[FIGHT] Assigned Decline button: '{btn.name}'");
             }
         }
 
         // 버튼이 여전히 없다면 Transform으로 찾기
         if (acceptButton == null || declineButton == null)
         {
-            Debug.LogWarning("[FIGHT] Some buttons not found, searching by Transform names...");
             Transform[] allChildren = fightRequestPanel.GetComponentsInChildren<Transform>(true);
 
             foreach (Transform child in allChildren)
@@ -183,26 +169,17 @@ public class FightRequestManager : MonoBehaviour
                     if (acceptButton == null && (childName.Contains("accept") || childName.Contains("yes")))
                     {
                         acceptButton = btn;
-                        Debug.Log($"[FIGHT] Found Accept button by Transform: '{child.name}'");
                     }
                     else if (declineButton == null && (childName.Contains("decline") || childName.Contains("no") || childName.Contains("cancel")))
                     {
                         declineButton = btn;
-                        Debug.Log($"[FIGHT] Found Decline button by Transform: '{child.name}'");
                     }
                 }
             }
         }
 
         // 결과 확인
-        if (acceptButton == null)
-            Debug.LogError("[FIGHT] AcceptButton still not found! Please check button names.");
-        if (declineButton == null)
-            Debug.LogError("[FIGHT] DeclineButton still not found! Please check button names.");
-        if (fightRequestText == null)
-            Debug.LogError("[FIGHT] TextMeshProUGUI still not found! Please check text component.");
 
-        Debug.Log($"[FIGHT] UI search complete - Accept: {(acceptButton ? "✓" : "✗")}, Decline: {(declineButton ? "✓" : "✗")}, Text: {(fightRequestText ? "✓" : "✗")}");
     }
 
 
@@ -231,7 +208,6 @@ public class FightRequestManager : MonoBehaviour
 
     public void ShowFightRequest(string fromUser, string gameMode)
     {
-        Debug.Log($"[FIGHT] ShowFightRequest called: {fromUser} wants {gameMode}");
 
         currentOpponent = fromUser;
         currentGameMode = gameMode;
@@ -239,7 +215,6 @@ public class FightRequestManager : MonoBehaviour
         // UI 참조가 없으면 다시 찾기 (씬 전환 등으로 인해)
         if (fightRequestPanel == null || fightRequestText == null)
         {
-            Debug.Log("[FIGHT] UI references missing, searching again...");
             FindExistingUI();
             SetupUI();
         }
@@ -248,11 +223,9 @@ public class FightRequestManager : MonoBehaviour
         if (fightRequestPanel != null)
         {
             fightRequestPanel.SetActive(true);
-            Debug.Log($"[FIGHT] Fight request panel activated");
         }
         else
         {
-            Debug.LogError("[FIGHT] fightRequestPanel is still null after search!");
             return;
         }
 
@@ -260,17 +233,14 @@ public class FightRequestManager : MonoBehaviour
         if (fightRequestText != null)
         {
             fightRequestText.text = $"{fromUser} wants to fight you in {gameMode}.";
-            Debug.Log($"[FIGHT] Updated fight request text");
         }
         else
         {
-            Debug.LogError("[FIGHT] fightRequestText is still null after search!");
         }
     }
 
     public void OnAcceptButtonClicked()
     {
-        Debug.Log($"Accepted fight request from {currentOpponent} for {currentGameMode}");
 
         // FightSocketManager를 통해 accept 메시지 전송
         if (FightSocketManager.Instance != null)
@@ -279,7 +249,6 @@ public class FightRequestManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("FightSocketManager instance not found!");
         }
 
         // 패널 닫기
@@ -288,7 +257,6 @@ public class FightRequestManager : MonoBehaviour
 
     public void OnDeclineButtonClicked()
     {
-        Debug.Log($"Declined fight request from {currentOpponent} for {currentGameMode}");
 
         // FightSocketManager를 통해 decline 메시지 전송
         if (FightSocketManager.Instance != null)
@@ -297,7 +265,6 @@ public class FightRequestManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("FightSocketManager instance not found!");
         }
 
         // 패널 닫기

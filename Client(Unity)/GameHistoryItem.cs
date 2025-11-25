@@ -80,7 +80,6 @@ public class GameHistoryItem : MonoBehaviour
             PlayerPrefs.SetInt("SelectedGameId", gameData.id);
             PlayerPrefs.Save();
 
-            Debug.Log($"Loading HistoryScene for game ID: {gameData.id}");
 
             // HistoryScene으로 이동
             SceneManager.LoadScene("HistoryScene");

@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ================== 설정 ==================
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # .env 파일에서 로드
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-this-in-production")  # .env 파일에서 로드
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7일
 

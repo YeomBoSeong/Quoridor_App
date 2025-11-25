@@ -52,7 +52,6 @@ public class PanelColorManager : MonoBehaviour
     {
         if (!colorMap.ContainsKey(colorName))
         {
-            Debug.LogWarning($"[PanelColorManager] Unknown color name: {colorName}");
             return;
         }
 
@@ -72,18 +71,15 @@ public class PanelColorManager : MonoBehaviour
                 {
                     imageComponent.color = targetColor;
                     appliedCount++;
-                    Debug.Log($"[PanelColorManager] Applied {colorName} to Panel: {obj.name} (Scene: {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name})");
                 }
             }
         }
 
         if (appliedCount == 0)
         {
-            Debug.LogWarning($"[PanelColorManager] No Panel objects found in the current scene.");
         }
         else
         {
-            Debug.Log($"[PanelColorManager] Total {appliedCount} Panel(s) updated with color: {colorName}");
         }
     }
 
@@ -99,7 +95,6 @@ public class PanelColorManager : MonoBehaviour
             return colorMap[colorName];
         }
 
-        Debug.LogWarning($"[PanelColorManager] Color '{colorName}' not found, returning default (Blue)");
         return colorMap["Blue"];
     }
 

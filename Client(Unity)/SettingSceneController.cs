@@ -23,12 +23,10 @@ public class SettingSceneController : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(startSceneName))
         {
-            Debug.Log($"[SettingSceneController] Going back to {startSceneName}");
             SceneManager.LoadScene(startSceneName);
         }
         else
         {
-            Debug.LogError("[SettingSceneController] Start scene name is not set!");
         }
     }
 
@@ -40,12 +38,10 @@ public class SettingSceneController : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(sceneName))
         {
-            Debug.Log($"[SettingSceneController] Loading scene: {sceneName}");
             SceneManager.LoadScene(sceneName);
         }
         else
         {
-            Debug.LogError("[SettingSceneController] Scene name is empty!");
         }
     }
 }

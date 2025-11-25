@@ -87,8 +87,6 @@ public class GameHistoryManager : MonoBehaviour
     IEnumerator LoadGameHistoryCoroutine()
     {
         string url = $"{ServerConfig.GetHttpUrl()}/game-history";
-        Debug.Log($"[GameHistoryManager] Requesting game history from: {url}");
-        Debug.Log($"[GameHistoryManager] Using token: {SessionData.token}");
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
@@ -97,33 +95,26 @@ public class GameHistoryManager : MonoBehaviour
 
             yield return request.SendWebRequest();
 
-            Debug.Log($"[GameHistoryManager] Response code: {request.responseCode}");
-            Debug.Log($"[GameHistoryManager] Response result: {request.result}");
 
             if (request.result == UnityWebRequest.Result.Success)
             {
                 try
                 {
                     string jsonResponse = request.downloadHandler.text;
-                    Debug.Log($"[GameHistoryManager] Raw response: {jsonResponse}");
 
                     GameHistoryResponse response = JsonUtility.FromJson<GameHistoryResponse>(jsonResponse);
 
                     if (response.game_history != null)
                     {
-                        Debug.Log($"[GameHistoryManager] Successfully parsed {response.game_history.Length} game records");
                         OnGameHistoryLoaded?.Invoke(response.game_history);
                     }
                     else
                     {
-                        Debug.LogWarning("[GameHistoryManager] game_history field is null in response");
                         OnGameHistoryLoaded?.Invoke(new GameHistoryData[0]);
                     }
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"[GameHistoryManager] Error parsing game history: {e.Message}");
-                    Debug.LogError($"[GameHistoryManager] Raw response was: {request.downloadHandler.text}");
                     OnError?.Invoke($"Failed to parse game history: {e.Message}");
                 }
             }
@@ -131,12 +122,9 @@ public class GameHistoryManager : MonoBehaviour
             {
                 long statusCode = request.responseCode;
                 string errorResponse = request.downloadHandler.text;
-                Debug.LogError($"[GameHistoryManager] HTTP Error {statusCode}: {request.error}");
-                Debug.LogError($"[GameHistoryManager] Error response body: {errorResponse}");
 
                 if (statusCode == 401)
                 {
-                    Debug.Log("[GameHistoryManager] Session expired while loading game history");
                     SessionData.ClearSession();
                     OnError?.Invoke("Session expired. Please login again.");
                 }
@@ -164,14 +152,12 @@ public class GameHistoryManager : MonoBehaviour
                 try
                 {
                     string jsonResponse = request.downloadHandler.text;
-                    Debug.Log($"Game detail response: {jsonResponse}");
 
                     GameDetailResponse response = JsonUtility.FromJson<GameDetailResponse>(jsonResponse);
                     OnGameDetailLoaded?.Invoke(response);
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing game detail: {e.Message}");
                     OnError?.Invoke($"Failed to parse game detail: {e.Message}");
                 }
             }
@@ -180,13 +166,11 @@ public class GameHistoryManager : MonoBehaviour
                 long statusCode = request.responseCode;
                 if (statusCode == 401)
                 {
-                    Debug.Log("Session expired while loading game detail");
                     SessionData.ClearSession();
                     OnError?.Invoke("Session expired. Please login again.");
                 }
                 else
                 {
-                    Debug.LogError($"Failed to load game detail: {request.error}");
                     OnError?.Invoke($"Failed to load game detail: {request.error}");
                 }
             }

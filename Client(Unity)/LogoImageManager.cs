@@ -48,11 +48,9 @@ public class LogoImageManager : MonoBehaviour
 
         if (managers.Length == 0)
         {
-            Debug.LogWarning("[LogoImageManager] No LogoImageManager found in the current scene.");
         }
         else
         {
-            Debug.Log($"[LogoImageManager] Applied logo image for color: {colorName} to {managers.Length} manager(s)");
         }
     }
 
@@ -64,7 +62,6 @@ public class LogoImageManager : MonoBehaviour
     {
         if (logoImage == null)
         {
-            Debug.LogError("[LogoImageManager] Logo Image component is not assigned!");
             return;
         }
 
@@ -80,18 +77,15 @@ public class LogoImageManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[LogoImageManager] Unknown logo color: {colorName}, using default (Black)");
             targetSprite = logoBlackSprite;
         }
 
         if (targetSprite != null)
         {
             logoImage.sprite = targetSprite;
-            Debug.Log($"[LogoImageManager] Logo image changed to: {targetSprite.name} (Scene: {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name})");
         }
         else
         {
-            Debug.LogError($"[LogoImageManager] Sprite for color '{colorName}' is not assigned!");
         }
     }
 

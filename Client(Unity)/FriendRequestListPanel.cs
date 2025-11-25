@@ -26,13 +26,11 @@ public class FriendRequestListPanel : MonoBehaviour
     public void RegisterUIController(FriendSceneUIController uiController)
     {
         currentUIController = uiController;
-        Debug.Log("[FriendRequestListPanel] UI Controller registered");
     }
 
     public void UnregisterUIController()
     {
         currentUIController = null;
-        Debug.Log("[FriendRequestListPanel] UI Controller unregistered");
     }
 
     void Awake()
@@ -62,7 +60,6 @@ public class FriendRequestListPanel : MonoBehaviour
         // 씬이 변경되면 UI 참조 다시 찾기
         if (scene.name == "FriendScene" || scene.name.Contains("Friend"))
         {
-            Debug.Log("[FriendRequestListPanel] Scene reloaded, refreshing UI references");
             StartCoroutine(RefreshUIReferencesDelayed());
         }
     }
@@ -88,16 +85,13 @@ public class FriendRequestListPanel : MonoBehaviour
 
     void RefreshUIReferences()
     {
-        Debug.Log("[FriendRequestListPanel] Refreshing UI references after scene reload");
 
         // 씬의 모든 GameObject 확인 (디버깅용)
-        Debug.Log("[FriendRequestListPanel] Scanning all objects in scene:");
         GameObject[] allObjects = FindObjectsOfType<GameObject>();
         foreach (GameObject obj in allObjects)
         {
             if (obj.name.ToLower().Contains("request") || obj.name.ToLower().Contains("friend") || obj.name.ToLower().Contains("panel"))
             {
-                Debug.Log($"[FriendRequestListPanel] Found candidate: {obj.name} (scene: {obj.scene.name})");
             }
         }
 
@@ -116,7 +110,6 @@ public class FriendRequestListPanel : MonoBehaviour
                 if (found != null)
                 {
                     requestListPanel = found;
-                    Debug.Log($"[FriendRequestListPanel] Found requestListPanel: {found.name}");
                     break;
                 }
             }
@@ -130,7 +123,6 @@ public class FriendRequestListPanel : MonoBehaviour
                     if (panel.name.ToLower().Contains("request") && panel.name.ToLower().Contains("panel"))
                     {
                         requestListPanel = panel;
-                        Debug.Log($"[FriendRequestListPanel] Found requestListPanel via scan: {panel.name}");
                         break;
                     }
                 }
@@ -138,7 +130,6 @@ public class FriendRequestListPanel : MonoBehaviour
 
             if (requestListPanel == null)
             {
-                Debug.LogError("[FriendRequestListPanel] Could not find requestListPanel anywhere!");
             }
         }
 
@@ -167,14 +158,12 @@ public class FriendRequestListPanel : MonoBehaviour
                 if (found != null)
                 {
                     requestItemParent = found;
-                    Debug.Log($"[FriendRequestListPanel] Found requestItemParent: {found.name}");
                     break;
                 }
             }
 
             if (requestItemParent == null)
             {
-                Debug.LogWarning("[FriendRequestListPanel] Could not find requestItemParent");
             }
         }
 
@@ -182,16 +171,13 @@ public class FriendRequestListPanel : MonoBehaviour
         {
             // 모든 Button 컴포넌트 찾기
             Button[] buttons = requestListPanel.GetComponentsInChildren<Button>(true);
-            Debug.Log($"[FriendRequestListPanel] Found {buttons.Length} buttons in panel");
 
             foreach (Button button in buttons)
             {
-                Debug.Log($"[FriendRequestListPanel] Button found: {button.name}");
                 string buttonName = button.name.ToLower();
                 if (buttonName.Contains("close") || buttonName.Contains("exit") || buttonName.Contains("x") || buttonName.Contains("back"))
                 {
                     closeButton = button;
-                    Debug.Log($"[FriendRequestListPanel] Found closeButton: {button.name}");
                     break;
                 }
             }
@@ -200,7 +186,6 @@ public class FriendRequestListPanel : MonoBehaviour
             if (closeButton == null && buttons.Length > 0)
             {
                 closeButton = buttons[0];
-                Debug.Log($"[FriendRequestListPanel] Using first button as closeButton: {closeButton.name}");
             }
         }
 
@@ -208,7 +193,6 @@ public class FriendRequestListPanel : MonoBehaviour
         SetupUI();
 
         // 최종 상태 로깅
-        Debug.Log($"[FriendRequestListPanel] Final state - Panel: {(requestListPanel != null ? requestListPanel.name : "null")}, Parent: {(requestItemParent != null ? requestItemParent.name : "null")}, Button: {(closeButton != null ? closeButton.name : "null")}");
     }
 
     public static void ShowRequestList()
@@ -217,17 +201,14 @@ public class FriendRequestListPanel : MonoBehaviour
         {
             if (instance.currentUIController != null && instance.currentUIController.IsUIReady())
             {
-                Debug.Log("[FriendRequestListPanel] Using UI Controller to show request list");
                 instance.LoadAndShowRequests();
             }
             else
             {
-                Debug.LogError("[FriendRequestListPanel] UI Controller not registered or not ready!");
             }
         }
         else
         {
-            Debug.LogError("[FriendRequestListPanel] Instance is null! Cannot show request list.");
         }
     }
 
@@ -259,12 +240,10 @@ public class FriendRequestListPanel : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing friend requests: {e.Message}");
                 }
             }
             else
             {
-                Debug.LogError($"Failed to load friend requests: {request.error}");
             }
         }
     }
@@ -291,7 +270,6 @@ public class FriendRequestListPanel : MonoBehaviour
 
     void CreateRequestItem(FriendRequestData request)
     {
-        Debug.Log($"[FriendRequestListPanel] CreateRequestItem called for: {request.sender_username}");
 
         Transform parentTransform = null;
         GameObject prefab = null;
@@ -301,25 +279,21 @@ public class FriendRequestListPanel : MonoBehaviour
         {
             parentTransform = currentUIController.GetRequestItemParent();
             prefab = currentUIController.GetRequestItemPrefab();
-            Debug.Log($"[FriendRequestListPanel] Using UI Controller - Prefab: {prefab != null}, Parent: {parentTransform != null}");
         }
         else
         {
             // Fallback: 기존 방식
             parentTransform = requestItemParent;
             prefab = requestItemPrefab;
-            Debug.Log($"[FriendRequestListPanel] Using fallback - Prefab: {prefab != null}, Parent: {parentTransform != null}");
         }
 
         if (prefab == null || parentTransform == null)
         {
-            Debug.LogError("[FriendRequestListPanel] Cannot create request item - missing prefab or parent");
             return;
         }
 
         GameObject requestItem = Instantiate(prefab, parentTransform);
         requestItems.Add(requestItem);
-        Debug.Log($"[FriendRequestListPanel] Request item instantiated: {requestItem.name}");
 
         // 요청 아이템 UI 설정
         SetupBasicRequestItem(requestItem, request);
@@ -327,7 +301,6 @@ public class FriendRequestListPanel : MonoBehaviour
 
     void SetupBasicRequestItem(GameObject item, FriendRequestData request)
     {
-        Debug.Log($"[FriendRequestListPanel] SetupBasicRequestItem for: {request.sender_username}");
 
         // 기본적인 텍스트와 버튼 설정
         TextMeshProUGUI[] texts = item.GetComponentsInChildren<TextMeshProUGUI>();
@@ -343,18 +316,15 @@ public class FriendRequestListPanel : MonoBehaviour
 
         // 프로필 이미지 로딩
         Image[] images = item.GetComponentsInChildren<Image>(true);
-        Debug.Log($"[FriendRequestListPanel] Found {images.Length} Image components in item");
 
         Image profileImage = null;
         foreach (Image img in images)
         {
-            Debug.Log($"[FriendRequestListPanel] Checking Image: {img.name}");
             string imgName = img.name.ToLower();
             if (imgName.Contains("profile") || imgName.Contains("avatar") ||
                 imgName.Contains("icon") || imgName.Contains("picture"))
             {
                 profileImage = img;
-                Debug.Log($"[FriendRequestListPanel] ✅ Found profile image: {img.name}");
                 break;
             }
         }
@@ -363,18 +333,15 @@ public class FriendRequestListPanel : MonoBehaviour
         if (profileImage == null && images.Length > 0)
         {
             profileImage = images[0];
-            Debug.Log($"[FriendRequestListPanel] ⚠️ Using first image as profile: {images[0].name}");
         }
 
         // 프로필 이미지 로드
         if (profileImage != null)
         {
-            Debug.Log($"[FriendRequestListPanel] Starting profile image load for: {request.sender_username}");
             StartCoroutine(LoadProfileImageForBasicItem(profileImage, request.sender_username));
         }
         else
         {
-            Debug.LogWarning($"[FriendRequestListPanel] ❌ No profile image found for: {request.sender_username}");
         }
 
         if (buttons.Length >= 2)
@@ -382,14 +349,12 @@ public class FriendRequestListPanel : MonoBehaviour
             // 첫 번째 버튼: 체크 버튼 (수락)
             buttons[0].onClick.RemoveAllListeners();
             buttons[0].onClick.AddListener(() => {
-                Debug.Log($"Accepting friend request from {request.sender_username}");
                 OnAcceptRequest(request.id);
             });
 
             // 두 번째 버튼: X 버튼 (거절)
             buttons[1].onClick.RemoveAllListeners();
             buttons[1].onClick.AddListener(() => {
-                Debug.Log($"Rejecting friend request from {request.sender_username}");
                 OnRejectRequest(request.id);
             });
         }
@@ -397,11 +362,9 @@ public class FriendRequestListPanel : MonoBehaviour
 
     IEnumerator LoadProfileImageForBasicItem(Image profileImage, string username)
     {
-        Debug.Log($"[FriendRequestListPanel] LoadProfileImageForBasicItem started for: {username}");
 
         // 1단계: 사용자 ID 가져오기
         string userUrl = $"{ServerConfig.GetHttpUrl()}/user/{username}";
-        Debug.Log($"[FriendRequestListPanel] Requesting user ID from: {userUrl}");
 
         using (UnityWebRequest request = UnityWebRequest.Get(userUrl))
         {
@@ -410,23 +373,18 @@ public class FriendRequestListPanel : MonoBehaviour
 
             yield return request.SendWebRequest();
 
-            Debug.Log($"[FriendRequestListPanel] User ID request result: {request.result}");
-            Debug.Log($"[FriendRequestListPanel] Response code: {request.responseCode}");
 
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
-                Debug.Log($"[FriendRequestListPanel] User response: {responseText}");
 
                 MeResponse userResponse = null;
                 try
                 {
                     userResponse = JsonUtility.FromJson<MeResponse>(responseText);
-                    Debug.Log($"[FriendRequestListPanel] ✅ Parsed user ID: {userResponse.id}");
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"[FriendRequestListPanel] ❌ Failed to parse user data: {e.Message}");
                     yield break;
                 }
 
@@ -438,7 +396,6 @@ public class FriendRequestListPanel : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"[FriendRequestListPanel] ❌ Failed to get user ID: {request.error}");
             }
         }
     }
@@ -446,7 +403,6 @@ public class FriendRequestListPanel : MonoBehaviour
     IEnumerator DownloadProfileImage(Image profileImage, int userId, string username)
     {
         string imageUrl = $"{ServerConfig.GetHttpUrl()}/profile-image/{userId}";
-        Debug.Log($"[FriendRequestListPanel] Requesting profile image from: {imageUrl}");
 
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageUrl))
         {
@@ -454,29 +410,22 @@ public class FriendRequestListPanel : MonoBehaviour
 
             yield return request.SendWebRequest();
 
-            Debug.Log($"[FriendRequestListPanel] Profile image request result: {request.result}");
-            Debug.Log($"[FriendRequestListPanel] Response code: {request.responseCode}");
 
             if (request.result == UnityWebRequest.Result.Success)
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(request);
-                Debug.Log($"[FriendRequestListPanel] Texture downloaded: {texture != null}, profileImage: {profileImage != null}");
 
                 if (texture != null && profileImage != null)
                 {
                     Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                     profileImage.sprite = sprite;
-                    Debug.Log($"[FriendRequestListPanel] ✅ Profile image set successfully for {username}! Size: {texture.width}x{texture.height}");
                 }
                 else
                 {
-                    Debug.LogError($"[FriendRequestListPanel] ❌ Cannot set profile image - texture: {texture != null}, profileImage: {profileImage != null}");
                 }
             }
             else
             {
-                Debug.LogError($"[FriendRequestListPanel] ❌ Failed to download profile image for {username}: {request.error}");
-                Debug.LogError($"[FriendRequestListPanel] Response text: {request.downloadHandler?.text ?? "null"}");
             }
         }
     }
@@ -507,7 +456,6 @@ public class FriendRequestListPanel : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("Friend request accepted successfully");
 
                 // 목록 새로고침
                 LoadAndShowRequests();
@@ -520,7 +468,6 @@ public class FriendRequestListPanel : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"Failed to accept friend request: {request.error}");
             }
         }
     }
@@ -541,7 +488,6 @@ public class FriendRequestListPanel : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("Friend request rejected successfully");
 
                 // 목록 새로고침
                 LoadAndShowRequests();
@@ -554,7 +500,6 @@ public class FriendRequestListPanel : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"Failed to reject friend request: {request.error}");
             }
         }
     }
@@ -564,11 +509,9 @@ public class FriendRequestListPanel : MonoBehaviour
         if (currentUIController != null)
         {
             currentUIController.ShowRequestPanel();
-            Debug.Log("[FriendRequestListPanel] Panel shown via UI Controller");
         }
         else
         {
-            Debug.LogError("[FriendRequestListPanel] Cannot show panel - UI Controller not registered!");
         }
     }
 

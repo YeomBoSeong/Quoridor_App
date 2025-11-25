@@ -126,12 +126,10 @@ public class FriendNotificationBadge : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing friend requests: {e.Message}");
                 }
             }
             else if (request.responseCode != 401) // 401은 세션 만료이므로 로그하지 않음
             {
-                Debug.LogError($"Failed to check friend requests: {request.error}");
             }
         }
     }

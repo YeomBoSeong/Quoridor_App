@@ -23,7 +23,6 @@ public class LogoColorController : MonoBehaviour
         LoadSavedColor();
         UpdateColorText();
         ApplyLogoImage();
-        Debug.Log($"[LogoColorController] Initialized with color: {colors[currentIndex]}");
     }
 
     /// <summary>
@@ -38,7 +37,6 @@ public class LogoColorController : MonoBehaviour
         SaveColor();
         ApplyLogoImage();
 
-        Debug.Log($"[LogoColorController] Right button clicked -> {colors[currentIndex]} (index: {currentIndex})");
     }
 
     /// <summary>
@@ -53,7 +51,6 @@ public class LogoColorController : MonoBehaviour
         SaveColor();
         ApplyLogoImage();
 
-        Debug.Log($"[LogoColorController] Left button clicked -> {colors[currentIndex]} (index: {currentIndex})");
     }
 
     /// <summary>
@@ -67,7 +64,6 @@ public class LogoColorController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[LogoColorController] ColorText is not assigned in Inspector!");
         }
     }
 
@@ -92,12 +88,10 @@ public class LogoColorController : MonoBehaviour
                 UpdateColorText();
                 SaveColor();
                 ApplyLogoImage();
-                Debug.Log($"[LogoColorController] Color set to: {colors[currentIndex]}");
                 return;
             }
         }
 
-        Debug.LogWarning($"[LogoColorController] Color '{colorName}' not found in the list!");
     }
 
     /// <summary>
@@ -122,7 +116,6 @@ public class LogoColorController : MonoBehaviour
                 if (colors[i].Equals(savedColor, System.StringComparison.OrdinalIgnoreCase))
                 {
                     currentIndex = i;
-                    Debug.Log($"[LogoColorController] Loaded saved color: {savedColor}");
                     return;
                 }
             }
@@ -130,7 +123,6 @@ public class LogoColorController : MonoBehaviour
 
         // 저장된 색상이 없으면 기본값 (Black)
         currentIndex = 0;
-        Debug.Log($"[LogoColorController] No saved color, using default: {colors[currentIndex]}");
     }
 
     /// <summary>
@@ -140,6 +132,5 @@ public class LogoColorController : MonoBehaviour
     {
         PlayerPrefs.SetString(LOGO_COLOR_KEY, colors[currentIndex]);
         PlayerPrefs.Save();
-        Debug.Log($"[LogoColorController] Saved color: {colors[currentIndex]}");
     }
 }

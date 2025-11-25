@@ -60,8 +60,6 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("UIManager: Message panel or text not assigned!");
-            Debug.Log($"Message: {message}");
         }
     }
 

@@ -66,6 +66,7 @@ public partial class GameManager : MonoBehaviour
     [SerializeField] private GameObject sessionWarningPanel;
     [SerializeField] private TextMeshProUGUI sessionWarningText;
 
+
     [Header("Debug Info")]
     [SerializeField] private string myPlayerColor;
     [SerializeField] private string myUsername;
@@ -84,7 +85,7 @@ public partial class GameManager : MonoBehaviour
     [SerializeField] private float opponentTimeRemaining;
     [SerializeField] private string currentTurn = "Red"; // Red 또는 Blue
     [SerializeField] private bool isMyTurn;
-    
+
     [Header("Wall Count Debug Info")]
     [SerializeField] private int myWallCount = 10;
     [SerializeField] private int opponentWallCount = 10;
@@ -114,7 +115,10 @@ public partial class GameManager : MonoBehaviour
     private System.Collections.Generic.Queue<System.Action> mainThreadActions = new System.Collections.Generic.Queue<System.Action>();
     private bool isGameEnded = false; // 게임 종료 상태 추적
     private bool hasConsumedGameCredit = false; // 게임 횟수 소비 여부 추적
-    
+
+    [Header("Move Counter")]
+    private int moveCounter = 0; // 수를 둔 횟수
+
     [Header("Board Grid Settings")]
     [SerializeField] private float cellSize = 99.20454f; // 한 칸 크기 (adjusted for screen ratio)
     [SerializeField] private Vector3 boardCenter = Vector3.zero; // 보드 중앙
@@ -178,7 +182,7 @@ public partial class GameManager : MonoBehaviour
         
         // Wall Prefab 체크
 
-        
+
         // WebSocket 연결 설정
         SetupGameWebSocket();
     }
@@ -310,7 +314,7 @@ public partial class GameManager : MonoBehaviour
             var action = mainThreadActions.Dequeue();
             action?.Invoke();
         }
-        
+
         // 현재 턴의 플레이어 시간을 감소시킴
         if (isMyTurn)
         {
@@ -330,19 +334,19 @@ public partial class GameManager : MonoBehaviour
                 OnTimeUp();
             }
         }
-        
+
         // UI 업데이트 (매 프레임마다는 비효율적이지만 타이머는 실시간 업데이트가 필요)
         UpdateTimerUI();
-        
+
         // 버튼 활성화 상태 업데이트
         UpdateButtonStates();
-        
+
         // 벽 모드 입력 처리
         if (isWallMode)
         {
             HandleWallModeInput();
         }
-        
+
     }
     
     void UpdateTimerUI()
@@ -849,11 +853,9 @@ public partial class GameManager : MonoBehaviour
         // FindNearestValidWallPosition 결과 로그
         if (foundValidWall)
         {
-            Debug.Log($"[FIND_WALL] Found valid wall - BoardCoordinates: ({currentBoardCoordinates.x},{currentBoardCoordinates.y}), UIPosition: {bestPosition}, IsHorizontal: {isWallHorizontal}");
         }
         else
         {
-            Debug.Log($"[FIND_WALL] No valid wall position found");
         }
 
         return foundValidWall ? bestPosition : Vector2.zero;
@@ -883,7 +885,6 @@ public partial class GameManager : MonoBehaviour
         // 새로운 벽 방향에 맞는 유효한 위치 재계산
         Vector2 newPosition = FindNearestValidWallPosition(gridX, gridY);
 
-        Debug.Log($"[ROTATE] Recalculated from UI position {uiPosition} -> LocalPos: {localPosition} -> Grid ({gridX},{gridY}) -> New BoardCoordinates: ({currentBoardCoordinates.x},{currentBoardCoordinates.y})");
 
         return newPosition;
     }
@@ -993,7 +994,6 @@ public partial class GameManager : MonoBehaviour
     void ShowWallPreview(Vector2 position)
     {
         // ShowWallPreview 입력값 로그
-        Debug.Log($"[SHOW_PREVIEW] Input position: {position}, IsHorizontal: {isWallHorizontal}, CurrentBoardCoordinates: ({currentBoardCoordinates.x},{currentBoardCoordinates.y})");
 
         // 현재 벽 위치 저장
         currentWallPosition = position;
@@ -1111,7 +1111,6 @@ public partial class GameManager : MonoBehaviour
         {
             // 상대방 벽 좌표 디버깅
             bool isHorizontal = (y1 == y2);
-            Debug.Log($"[OPPONENT_WALL] {(isHorizontal ? "가로벽" : "세로벽")} - 보드좌표: ({y1},{x1})-({y2},{x2})");
             
             // 보드에 벽 추가 (Red 관점 좌표 그대로 사용)
             if (gameBoard != null)
@@ -1253,11 +1252,21 @@ public partial class GameManager : MonoBehaviour
         string remainTime = myTimeRemaining.ToString("F1");
         
         string message = $"{timeControl} {gameToken} {myUsername} Wall {pos} {remainTime} {gameProgress}";
-        
+
         // 메시지 파트 수 확인
         string[] messageParts = message.Split(' ');
-        
+
         _ = SendMessageAsync(message);
+
+        // 첫 수 카운트다운 처리
+        if (moveCounter < 2)
+        {
+            moveCounter++;
+        }
+        else
+        {
+            moveCounter++;
+        }
     }
     
     void OnMoveButtonClicked(int boardY, int boardX)
@@ -1364,21 +1373,26 @@ public partial class GameManager : MonoBehaviour
         try
         {
             gameWebSocket = new ClientWebSocket();
+
+            // 프로토콜 레벨 Ping을 3초마다 자동 전송
+            gameWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(3);
+
             cancellationTokenSource = new CancellationTokenSource();
-            
+
             // 게임 WebSocket URL
             string wsUrl = $"{ServerConfig.GetWebSocketUrl()}/game";
             var uri = new Uri(wsUrl);
-            
+
             await gameWebSocket.ConnectAsync(uri, cancellationTokenSource.Token);
-            
-            
+
+
             // 게임 연결 등록 메시지 전송
             string connectMessage = $"{TimeControlManager.currentTimeControl} {gameToken} {myUsername} Connect";
             await SendMessageAsync(connectMessage);
-            
+
             // 메시지 수신 시작
             _ = ReceiveGameMessagesAsync();
+            Debug.Log("GameManager.cs: ConnectToGameWebSocketAsync() called.");
         }
         catch (Exception ex)
         {
@@ -1390,25 +1404,26 @@ public partial class GameManager : MonoBehaviour
     
     async Task ReceiveGameMessagesAsync()
     {
-        if (gameWebSocket == null || isReceivingMessages) 
+        if (gameWebSocket == null || isReceivingMessages)
         {
             return;
         }
-        
+
         isReceivingMessages = true;
         var buffer = new byte[1024 * 4];
-        
-        
+
+
         try
         {
             while (gameWebSocket.State == WebSocketState.Open && !cancellationTokenSource.Token.IsCancellationRequested)
             {
+                // 프로토콜 레벨 Ping/Pong이 연결을 관리하므로 타임아웃 불필요
                 var result = await gameWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationTokenSource.Token);
-                
+
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    
+
                     // 메인 스레드에서 처리
                     mainThreadActions.Enqueue(() =>
                     {
@@ -1433,6 +1448,7 @@ public partial class GameManager : MonoBehaviour
             mainThreadActions.Enqueue(() =>
             {
                 HandleWebSocketDisconnect();
+                Debug.Log("GameManager.cs: ReceiveGameMessagesAsync() called.");
             });
         }
         finally
@@ -1440,10 +1456,9 @@ public partial class GameManager : MonoBehaviour
             isReceivingMessages = false;
         }
     }
-    
+
     void HandleGameMessage(string message)
     {
-        
         // 서버 메시지 형식을 정확히 파악하기 위해 전체 메시지 분석
         string[] parts = message.Split(' ');
         
@@ -1529,7 +1544,6 @@ public partial class GameManager : MonoBehaviour
             // 게임 종료 전 상대방의 마지막 수 반영
             if (pos != "0,0")
             {
-                Debug.Log($"[GAME_END] Applying opponent's final move at position: {pos}");
 
                 // 기존 HandleOpponentMove 함수를 사용해서 상대방의 마지막 수 처리
                 HandleOpponentMove(pos);
@@ -1546,7 +1560,10 @@ public partial class GameManager : MonoBehaviour
             return;
         }
         
-        // 상대방의 수를 받았으므로 이제 내 차례 - 턴 전환
+        // 상대방의 수를 받았으므로 이제 내 차례
+        // 첫 두 수 중 하나라면 내 카운트다운 시작
+
+        // 턴 전환
         SwitchTurn();
     }
     
@@ -1638,11 +1655,9 @@ public partial class GameManager : MonoBehaviour
             {
                 if (success)
                 {
-                    Debug.Log("[GameManager] Game credit consumed after game end");
                 }
                 else
                 {
-                    Debug.LogError("[GameManager] Failed to consume game credit after game end");
                 }
             });
         }
@@ -1657,6 +1672,7 @@ public partial class GameManager : MonoBehaviour
 
         // 결과창 표시
         ShowGameResult(result);
+        Debug.Log("GameManager.cs: HandleGameEnd() called.");
     }
     
     void ShowGameResult(string result)
@@ -1674,15 +1690,24 @@ public partial class GameManager : MonoBehaviour
             {
                 resultMessage = "You Lost...";
             }
+            else if (result == "Connection Lost")
+            {
+                resultMessage = "Connection Lost. You Lost.";
+                Debug.Log("GameManager.cs: ShowGameResult() called.");
+            }
             else if (result == "OpponentDisconnect")
             {
                 resultMessage = "Opponent disconnected. You Won!";
+            }
+            else if (result == "Connection Failed")
+            {
+                resultMessage = "Connection Failed";
             }
             else
             {
                 resultMessage = "Game Ended";
             }
-            
+
             gameResultText.text = resultMessage;
 
             // 패널을 UI 계층의 맨 위로 이동
@@ -1779,7 +1804,7 @@ public partial class GameManager : MonoBehaviour
         {
             return;
         }
-        
+
         try
         {
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
@@ -1790,7 +1815,7 @@ public partial class GameManager : MonoBehaviour
         {
         }
     }
-    
+
     void SendMoveToServerWebSocket(int boardY, int boardX)
     {
         // Blue 플레이어인 경우 서버로 보낼 좌표를 Red 관점으로 변환
@@ -1827,8 +1852,18 @@ public partial class GameManager : MonoBehaviour
         string remainTime = myTimeRemaining.ToString("F1");
         
         string message = $"{timeControl} {gameToken} {myUsername} Move {pos} {remainTime} {gameProgress}";
-        
+
         _ = SendMessageAsync(message);
+
+        // 첫 수 카운트다운 처리
+        if (moveCounter < 2)
+        {
+            moveCounter++;
+        }
+        else
+        {
+            moveCounter++;
+        }
     }
     
     
@@ -2047,7 +2082,6 @@ public partial class GameManager : MonoBehaviour
         }
 
         // 벽 좌표 디버깅
-        Debug.Log($"[WALL] {(isWallHorizontal ? "가로벽" : "세로벽")} - 보드좌표: ({y1},{x1})-({y2},{x2}), UI좌표: {currentWallPosition}");
 
         gameBoard.put_wall(y1, x1, y2, x2);
 
@@ -2098,9 +2132,16 @@ public partial class GameManager : MonoBehaviour
             request.SetRequestHeader("Authorization", "Bearer " + token);
             
             yield return request.SendWebRequest();
-            
-            if (request.result != UnityWebRequest.Result.Success || request.responseCode == 401)
+
+            if (request.result != UnityWebRequest.Result.Success)
             {
+                // 네트워크 연결 실패
+                Debug.Log($"[SESSION] Network error: {request.result}, Error: {request.error}");
+                ShowGameResult("Connection Failed");
+            }
+            else if (request.responseCode == 401)
+            {
+                // 실제 인증 실패 (이중 로그인)
                 ShowSessionWarningAndQuit();
             }
             else
@@ -2159,27 +2200,25 @@ public partial class GameManager : MonoBehaviour
         string pos = "0,0";
         string remainTime = "0.0";
         string gameProgress = "Lost";
-        
+
         string message = $"{timeControl} {gameToken} {myUsername} Disconnect {pos} {remainTime} {gameProgress}";
-        
+
         _ = SendMessageAsync(message);
     }
-    
+
     void HandleWebSocketDisconnect()
     {
 
-        // 게임이 이미 끝났으면 연결 끊김 무시
+        // 게임이 이미 끝았으면 연결 끊김 무시
         if (isGameEnded)
         {
             return;
         }
 
-        // 연결이 끊어졌을 때 서버에 패배 메시지 전송 시도
-        SendDisconnectMessage();
-
         // 게임 종료 처리
         isGameEnded = true;
-        HandleGameEnd("Lost");
+        ShowGameResult("Connection Failed");
+        Debug.Log("GameManager.cs: HandleWebSocketDisconnect() called.");
     }
     
     void OnDestroy()
@@ -2572,14 +2611,12 @@ public partial class GameManager
         }
 
         // 상대방 프로필 이미지 로드
-        Debug.Log($"OpponentName value: '{opponentName}' (IsNull: {opponentName == null}, IsEmpty: {string.IsNullOrEmpty(opponentName)})");
         if (!string.IsNullOrEmpty(opponentName))
         {
             StartCoroutine(LoadOpponentProfileImage());
         }
         else
         {
-            Debug.LogWarning("OpponentName is null or empty, cannot load opponent profile image");
         }
     }
 
@@ -2604,7 +2641,6 @@ public partial class GameManager
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing my user info: {e.Message}");
                     yield break;
                 }
 
@@ -2618,15 +2654,10 @@ public partial class GameManager
 
     IEnumerator LoadOpponentProfileImage()
     {
-        Debug.Log($"Loading opponent profile image for: '{opponentName}'");
-        Debug.Log($"ServerConfig.GetHttpUrl(): {ServerConfig.GetHttpUrl()}");
 
         // 먼저 상대방의 사용자 ID를 가져옴
         string encodedOpponentName = UnityEngine.Networking.UnityWebRequest.EscapeURL(opponentName);
         string url = $"{ServerConfig.GetHttpUrl()}/user/{encodedOpponentName}";
-        Debug.Log($"Original opponent name: '{opponentName}'");
-        Debug.Log($"Encoded opponent name: '{encodedOpponentName}'");
-        Debug.Log($"Requesting URL: {url}");
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
@@ -2644,7 +2675,6 @@ public partial class GameManager
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing opponent user info: {e.Message}");
                     yield break;
                 }
 
@@ -2655,8 +2685,6 @@ public partial class GameManager
             }
             else
             {
-                Debug.LogWarning($"Failed to get opponent user info. Status: {request.responseCode}, Error: {request.error}");
-                Debug.LogWarning($"Response text: {request.downloadHandler?.text}");
             }
         }
     }
@@ -2681,7 +2709,6 @@ public partial class GameManager
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error getting texture from profile image: {e.Message}");
                     yield break;
                 }
 
@@ -2691,17 +2718,14 @@ public partial class GameManager
                     {
                         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                         targetImage.sprite = sprite;
-                        Debug.Log($"Loaded profile image for user ID: {userId}");
                     }
                     catch (System.Exception e)
                     {
-                        Debug.LogError($"Error creating sprite from texture: {e.Message}");
                     }
                 }
             }
             else
             {
-                Debug.Log($"No profile image found for user ID: {userId}");
             }
         }
     }
@@ -2722,4 +2746,5 @@ public partial class GameManager
         public string email;
         public string created_at;
     }
+
 }

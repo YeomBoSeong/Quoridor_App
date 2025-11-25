@@ -80,7 +80,6 @@ public class ChatManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(friendUsername))
         {
-            Debug.LogError("No target friend username set!");
             GoBackToFriendsScene();
             return;
         }
@@ -179,7 +178,6 @@ public class ChatManager : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing my user info: {e.Message}");
                 }
 
                 if (userResponse != null)
@@ -222,7 +220,6 @@ public class ChatManager : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing friend user info: {e.Message}");
                 }
 
                 if (userResponse != null)
@@ -347,12 +344,10 @@ public class ChatManager : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogError($"Failed to send message: {response.message}");
                     }
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing send message response: {e.Message}");
                 }
             }
             else
@@ -360,13 +355,11 @@ public class ChatManager : MonoBehaviour
                 long statusCode = request.responseCode;
                 if (statusCode == 401)
                 {
-                    Debug.Log("Session expired while sending message");
                     SessionData.ClearSession();
                     StartCoroutine(ShowWarningAndQuit());
                 }
                 else
                 {
-                    Debug.LogError($"Failed to send message: {request.error}");
                 }
             }
         }
@@ -392,7 +385,6 @@ public class ChatManager : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing chat history: {e.Message}");
                 }
             }
             else
@@ -400,13 +392,11 @@ public class ChatManager : MonoBehaviour
                 long statusCode = request.responseCode;
                 if (statusCode == 401)
                 {
-                    Debug.Log("Session expired while loading chat history");
                     SessionData.ClearSession();
                     StartCoroutine(ShowWarningAndQuit());
                 }
                 else
                 {
-                    Debug.LogError($"Failed to load chat history: {request.error}");
                 }
             }
         }
@@ -486,7 +476,6 @@ public class ChatManager : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing user info for message: {e.Message}");
                 }
 
                 if (userResponse != null)

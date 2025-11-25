@@ -30,11 +30,9 @@ public class MessageNotificationManager : MonoBehaviour
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[MessageNotificationManager] Instance created and set to DontDestroyOnLoad");
         }
         else
         {
-            Debug.Log("[MessageNotificationManager] Duplicate instance found, destroying");
             Destroy(gameObject);
             return;
         }
@@ -42,7 +40,6 @@ public class MessageNotificationManager : MonoBehaviour
 
     void Start()
     {
-        Debug.Log($"[MessageNotificationManager] Starting unread message checking every {checkInterval} seconds");
         // 정기적으로 읽지 않은 메시지 확인
         InvokeRepeating(nameof(CheckForUnreadMessages), 5f, checkInterval);
     }
@@ -80,11 +77,9 @@ public class MessageNotificationManager : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log($"[MessageNotificationManager] Marked messages from {friendUsername} as read on server");
             }
             else
             {
-                Debug.LogError($"[MessageNotificationManager] Failed to mark messages as read on server: {request.error}");
             }
         }
     }
@@ -93,11 +88,9 @@ public class MessageNotificationManager : MonoBehaviour
     {
         if (!SessionData.IsValidSession())
         {
-            Debug.Log("[MessageNotificationManager] Invalid session, skipping unread message check");
             return;
         }
 
-        Debug.Log("[MessageNotificationManager] Checking for unread messages...");
         StartCoroutine(CheckForUnreadMessagesCoroutine());
     }
 
@@ -117,7 +110,6 @@ public class MessageNotificationManager : MonoBehaviour
                 try
                 {
                     string jsonResponse = request.downloadHandler.text;
-                    Debug.Log($"[MessageNotificationManager] Server response: {jsonResponse}");
 
                     var response = JsonUtility.FromJson<UnreadMessagesResponse>(jsonResponse);
 
@@ -126,16 +118,13 @@ public class MessageNotificationManager : MonoBehaviour
 
                     if (response.unread_messages != null)
                     {
-                        Debug.Log($"[MessageNotificationManager] Found {response.unread_messages.Length} friends with unread messages");
                         foreach (var unreadData in response.unread_messages)
                         {
                             newUnreadCounts[unreadData.friend_username] = unreadData.unread_count;
-                            Debug.Log($"[MessageNotificationManager] {unreadData.friend_username}: {unreadData.unread_count} unread messages");
                         }
                     }
                     else
                     {
-                        Debug.Log("[MessageNotificationManager] No unread messages found");
                     }
 
                     // 변경된 경우에만 UI 업데이트
@@ -164,30 +153,25 @@ public class MessageNotificationManager : MonoBehaviour
 
                     if (hasChanges)
                     {
-                        Debug.Log("[MessageNotificationManager] Unread counts changed, updating UI");
                         unreadCounts = newUnreadCounts;
                         UpdateAllFriendNotifications();
                     }
                     else
                     {
-                        Debug.Log("[MessageNotificationManager] No changes in unread counts");
                     }
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing unread messages: {e.Message}");
                 }
             }
             else if (request.responseCode != 401) // 401은 세션 만료이므로 로그하지 않음
             {
-                Debug.LogError($"Failed to check unread messages: {request.error}");
             }
         }
     }
 
     void UpdateAllFriendNotifications()
     {
-        Debug.Log($"[MessageNotificationManager] Updating notifications for {unreadCounts.Count} friends with unread messages");
 
         foreach (var kvp in unreadCounts)
         {
@@ -196,7 +180,6 @@ public class MessageNotificationManager : MonoBehaviour
 
         // 읽지 않은 메시지가 없는 친구들도 업데이트
         var allFriendItems = FriendItemUI.GetAllFriendItems();
-        Debug.Log($"[MessageNotificationManager] Total friend items found: {allFriendItems.Count}");
 
         foreach (var friendItem in allFriendItems)
         {
@@ -215,12 +198,10 @@ public class MessageNotificationManager : MonoBehaviour
         {
             int unreadCount = unreadCounts.ContainsKey(friendUsername) ? unreadCounts[friendUsername] : 0;
             bool shouldShow = unreadCount > 0;
-            Debug.Log($"[MessageNotificationManager] Updating {friendUsername}: {unreadCount} unread messages, notification visible: {shouldShow}");
             friendItem.SetMessageNotificationVisible(shouldShow);
         }
         else
         {
-            Debug.LogWarning($"[MessageNotificationManager] FriendItemUI not found for {friendUsername}");
         }
     }
 

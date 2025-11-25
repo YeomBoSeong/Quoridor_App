@@ -82,12 +82,10 @@ public class HistorySceneManager : MonoBehaviour
         int gameId = PlayerPrefs.GetInt("SelectedGameId", -1);
         if (gameId == -1)
         {
-            Debug.LogError("No game ID found in PlayerPrefs");
             OnBackButtonClicked();
             return;
         }
 
-        Debug.Log($"Loading game detail for ID: {gameId}");
 
         // GameHistoryManager 초기화 및 이벤트 구독
         if (GameHistoryManager.Instance == null)
@@ -114,8 +112,6 @@ public class HistorySceneManager : MonoBehaviour
         // 현재 사용자가 player1인지 player2인지 확인
         isCurrentUserPlayer1 = (currentGameDetail.player1_username == currentUsername);
 
-        Debug.Log($"Loaded game detail: {moves.Count} moves");
-        Debug.Log($"Current user: {currentUsername}, Is Player1: {isCurrentUserPlayer1}");
 
         // 플레이어 정보 표시
         DisplayPlayerInfo();
@@ -130,7 +126,6 @@ public class HistorySceneManager : MonoBehaviour
 
     void OnGameDetailError(string errorMessage)
     {
-        Debug.LogError($"Failed to load game detail: {errorMessage}");
         OnBackButtonClicked();
     }
 
@@ -234,13 +229,11 @@ public class HistorySceneManager : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"Error parsing user info for {username}: {e.Message}");
                     yield break;
                 }
             }
             else
             {
-                Debug.LogError($"Failed to get user info for {username}: {request.error}");
                 yield break;
             }
         }
@@ -267,12 +260,10 @@ public class HistorySceneManager : MonoBehaviour
                             new Vector2(0.5f, 0.5f));
                         targetImage.sprite = newSprite;
 
-                        Debug.Log($"Loaded profile image for {username}");
                     }
                 }
                 else
                 {
-                    Debug.LogWarning($"Failed to load profile image for {username}: {request.error}");
                     // 실패 시 기본 이미지 유지
                 }
             }
@@ -318,7 +309,6 @@ public class HistorySceneManager : MonoBehaviour
 
         // 폰 위치 업데이트
         UpdatePawnPositions();
-        Debug.Log($"Reset to game start: Current user is Player{(isCurrentUserPlayer1 ? "1" : "2")}, My position ({myPosition.x}, {myPosition.y}), Opponent position ({opponentPosition.x}, {opponentPosition.y})");
     }
 
     void UpdatePawnPositions()
@@ -381,7 +371,6 @@ public class HistorySceneManager : MonoBehaviour
         }
 
         Vector3 worldPos = boardCenter + new Vector3(worldX, worldY, 0);
-        Debug.Log($"BoardPos({boardPos.x}, {boardPos.y}) -> Grid({gridX}, {gridY}) -> World({worldX}, {worldY}) [Player{(isCurrentUserPlayer1 ? "1" : "2")}]");
         return worldPos;
     }
 
@@ -528,8 +517,6 @@ public class HistorySceneManager : MonoBehaviour
                 }
 
                 UpdatePawnPositions();
-                Debug.Log($"Applied move: {(isMoveByMe ? "My" : "Opponent")} move to boardY={boardY}, boardX={boardX} -> Vector2({newPos.x}, {newPos.y})");
-                Debug.Log($"Current user is Player{(isCurrentUserPlayer1 ? "1" : "2")}, isMyMove={isMoveByMe}");
             }
         }
     }
@@ -638,7 +625,6 @@ public class HistorySceneManager : MonoBehaviour
                             // Z-order 설정으로 다른 오브젝트보다 앞에 표시
                             wallRect.SetAsLastSibling();
 
-                            Debug.Log($"[WALL] Placed {(isHorizontal ? "horizontal" : "vertical")} wall at Canvas UI position {wallUIPosition}, Board coords: ({y1},{x1})-({y2},{x2})");
                         }
                     }
                     else
@@ -649,7 +635,6 @@ public class HistorySceneManager : MonoBehaviour
                         wall.transform.localPosition = worldPos;
                         wall.transform.rotation = isHorizontal ? Quaternion.identity : Quaternion.Euler(0, 0, 90);
 
-                        Debug.Log($"[WALL] Placed {(isHorizontal ? "horizontal" : "vertical")} wall at World position {worldPos}, Board coords: ({y1},{x1})-({y2},{x2})");
                     }
                 }
             }
@@ -699,7 +684,6 @@ public class HistorySceneManager : MonoBehaviour
             unityY = -unityY;
         }
 
-        Debug.Log($"[WALL_CALC] {(isHorizontal ? "Horizontal" : "Vertical")} wall: Board({y1},{x1})-({y2},{x2}) -> UI({unityX},{unityY}) [Player{(isCurrentUserPlayer1 ? "1" : "2")}]");
         return new Vector2(unityX, unityY);
     }
 

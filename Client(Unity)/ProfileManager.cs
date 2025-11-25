@@ -265,7 +265,6 @@ public class ProfileManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("NativeImagePicker instance not found");
         }
     }
     
@@ -290,7 +289,6 @@ public class ProfileManager : MonoBehaviour
     
     void OnImageSelectionFailed(string error)
     {
-        Debug.Log($"Image selection cancelled or failed: {error}");
         
         // "No file selected"는 사용자가 취소한 것이므로 오류가 아님
         if (error != "No file selected")
@@ -329,11 +327,9 @@ public class ProfileManager : MonoBehaviour
             
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("Profile image uploaded successfully");
             }
             else
             {
-                Debug.LogError($"Failed to upload profile image: {request.error}");
                 ShowError("Failed to upload image to server");
                 // 실패 시 기본 이미지로 되돌리기
                 SetDefaultProfileImage();
@@ -365,7 +361,6 @@ public class ProfileManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Failed to load profile image: {request.error}");
                 // 로드 실패 시 기본 이미지 유지
             }
         }
@@ -375,18 +370,15 @@ public class ProfileManager : MonoBehaviour
 
     void InitializeGameHistoryManager()
     {
-        Debug.Log("[ProfileManager] Initializing GameHistoryManager...");
 
         // GameHistoryManager가 없으면 생성
         if (GameHistoryManager.Instance == null)
         {
-            Debug.Log("[ProfileManager] Creating new GameHistoryManager");
             GameObject managerGO = new GameObject("GameHistoryManager");
             managerGO.AddComponent<GameHistoryManager>();
         }
         else
         {
-            Debug.Log("[ProfileManager] GameHistoryManager already exists");
         }
 
         // 이벤트 구독
@@ -394,91 +386,74 @@ public class ProfileManager : MonoBehaviour
         {
             GameHistoryManager.Instance.OnGameHistoryLoaded += OnGameHistoryLoaded;
             GameHistoryManager.Instance.OnError += OnGameHistoryError;
-            Debug.Log("[ProfileManager] Event subscriptions completed");
         }
         else
         {
-            Debug.LogError("[ProfileManager] Failed to create GameHistoryManager instance");
         }
     }
 
     void LoadGameHistory()
     {
-        Debug.Log("[ProfileManager] LoadGameHistory called");
 
         if (GameHistoryManager.Instance != null)
         {
-            Debug.Log("[ProfileManager] Calling GameHistoryManager.LoadGameHistory()");
             GameHistoryManager.Instance.LoadGameHistory();
         }
         else
         {
-            Debug.LogError("[ProfileManager] GameHistoryManager.Instance is null, cannot load history");
         }
     }
 
     void OnGameHistoryLoaded(GameHistoryData[] gameHistories)
     {
-        Debug.Log($"[ProfileManager] OnGameHistoryLoaded called with {gameHistories.Length} records");
         DisplayGameHistory(gameHistories);
     }
 
     void OnGameHistoryError(string errorMessage)
     {
-        Debug.LogError($"[ProfileManager] Game history error: {errorMessage}");
         // TODO: UI에 에러 메시지 표시
     }
 
     void DisplayGameHistory(GameHistoryData[] gameHistories)
     {
-        Debug.Log($"[ProfileManager] DisplayGameHistory called with {gameHistories.Length} records");
 
         // 기존 게임 히스토리 아이템들 제거
         ClearGameHistoryItems();
 
         if (gameHistoryContent == null)
         {
-            Debug.LogError("[ProfileManager] gameHistoryContent is null - not assigned in inspector");
             return;
         }
 
         if (gameHistoryItemPrefab == null)
         {
-            Debug.LogError("[ProfileManager] gameHistoryItemPrefab is null - not assigned in inspector");
             return;
         }
 
-        Debug.Log($"[ProfileManager] UI elements are valid, creating {gameHistories.Length} items");
 
         // 각 게임 기록에 대해 UI 아이템 생성
         foreach (GameHistoryData gameData in gameHistories)
         {
-            Debug.Log($"[ProfileManager] Creating item for game vs {gameData.opponent_username} - {gameData.result}");
             CreateGameHistoryItem(gameData);
         }
 
-        Debug.Log("[ProfileManager] All game history items created");
     }
 
     void CreateGameHistoryItem(GameHistoryData gameData)
     {
-        Debug.Log($"[ProfileManager] Creating history item for game ID {gameData.id}");
 
         GameObject historyItem = Instantiate(gameHistoryItemPrefab, gameHistoryContent);
         gameHistoryItems.Add(historyItem);
 
-        Debug.Log($"[ProfileManager] Instantiated prefab, setting up component");
 
         // 게임 히스토리 아이템 컴포넌트 설정
         GameHistoryItem itemComponent = historyItem.GetComponent<GameHistoryItem>();
         if (itemComponent != null)
         {
             itemComponent.SetGameData(gameData);
-            Debug.Log($"[ProfileManager] Successfully set game data for item");
         }
         else
         {
-            Debug.LogError("[ProfileManager] GameHistoryItem component not found on prefab - check prefab setup");
         }
     }
 

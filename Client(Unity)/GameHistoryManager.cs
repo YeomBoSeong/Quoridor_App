@@ -49,6 +49,10 @@ public class GameDetailResponse
     public string game_start_time;
     public string game_end_time;
     public string game_result;
+    public int player1_elo_before;
+    public int player1_elo_after;
+    public int player2_elo_before;
+    public int player2_elo_after;
     public GameMoveData[] moves;
 }
 

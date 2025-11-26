@@ -134,18 +134,24 @@ public partial class GameManager : MonoBehaviour
 
     void InitializeGame()
     {
+        // 게임 횟수 차감 플래그 초기화 (새 게임 시작 시 반드시 초기화)
+        hasConsumedGameCredit = false;
+        isGameEnded = false;
+
         // TimeControlManager에서 매치 정보 가져오기
         myPlayerColor = TimeControlManager.playerColor;
         opponentName = TimeControlManager.opponentName;
         gameToken = TimeControlManager.gameToken;
         opponentELO = TimeControlManager.opponentELO;
 
+        Debug.Log($"[GameManager] InitializeGame - Player Color: {myPlayerColor}");
+
         // SessionData에서 내 유저네임 가져오기
         if (SessionData.IsValidSession())
         {
             myUsername = SessionData.username;
             // 현재 게임 모드에 맞는 최신 ELO 사용 (TimeControlManager에서 매치메이킹 시 받아온 값)
-            myELO = !string.IsNullOrEmpty(TimeControlManager.myCurrentELO) ? 
+            myELO = !string.IsNullOrEmpty(TimeControlManager.myCurrentELO) ?
                     TimeControlManager.myCurrentELO : SessionData.elo;
         }
         else
@@ -1233,16 +1239,14 @@ public partial class GameManager : MonoBehaviour
             if (winStatus == 1) // 승리
             {
                 gameProgress = "Won";
-                isGameEnded = true; // 게임 종료 플래그 설정
-                // 승리 시 결과창 표시
-                ShowGameResult("Won");
+                // 게임 횟수 차감 및 결과창 표시
+                HandleGameEnd("Won");
             }
             else if (winStatus == 2) // 패배
             {
                 gameProgress = "Lost";
-                isGameEnded = true; // 게임 종료 플래그 설정
-                // 패배 시 결과창 표시
-                ShowGameResult("Lost");
+                // 게임 횟수 차감 및 결과창 표시
+                HandleGameEnd("Lost");
             }
         }
         
@@ -1638,10 +1642,12 @@ public partial class GameManager : MonoBehaviour
     
     void HandleGameEnd(string result)
     {
+        Debug.Log($"[GameManager] HandleGameEnd called - Result: {result}, PlayerColor: {myPlayerColor}, isGameEnded: {isGameEnded}, hasConsumedGameCredit: {hasConsumedGameCredit}");
 
         // 게임이 이미 끝났으면 중복 처리 방지
-        if (isGameEnded && result == "Lost")
+        if (isGameEnded && (result == "Lost" || result == "Lose"))
         {
+            Debug.Log($"[GameManager] HandleGameEnd - Game already ended, skipping duplicate call");
             return;
         }
 
@@ -1651,15 +1657,29 @@ public partial class GameManager : MonoBehaviour
         if (!hasConsumedGameCredit && GameCreditManager.Instance != null)
         {
             hasConsumedGameCredit = true;
+            Debug.Log($"[GameManager] Attempting to consume game credit for {myPlayerColor} player");
             GameCreditManager.Instance.ConsumeGame((success) =>
             {
                 if (success)
                 {
+                    Debug.Log($"[GameManager] Game credit consumed successfully for {myPlayerColor} player");
                 }
                 else
                 {
+                    Debug.LogWarning($"[GameManager] Failed to consume game credit for {myPlayerColor} player");
                 }
             });
+        }
+        else
+        {
+            if (hasConsumedGameCredit)
+            {
+                Debug.Log($"[GameManager] Game credit already consumed, skipping");
+            }
+            if (GameCreditManager.Instance == null)
+            {
+                Debug.LogError($"[GameManager] GameCreditManager.Instance is null!");
+            }
         }
 
         // 게임 버튼들 비활성화
@@ -1833,16 +1853,14 @@ public partial class GameManager : MonoBehaviour
             if (winStatus == 1) // 승리
             {
                 gameProgress = "Won";
-                isGameEnded = true; // 게임 종료 플래그 설정
-                // 승리 시 결과창 표시
-                ShowGameResult("Won");
+                // 게임 횟수 차감 및 결과창 표시
+                HandleGameEnd("Won");
             }
             else if (winStatus == 2) // 패배
             {
                 gameProgress = "Lost";
-                isGameEnded = true; // 게임 종료 플래그 설정
-                // 패배 시 결과창 표시
-                ShowGameResult("Lost");
+                // 게임 횟수 차감 및 결과창 표시
+                HandleGameEnd("Lost");
             }
         }
         

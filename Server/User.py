@@ -216,6 +216,10 @@ class GameDetailResponse(BaseModel):
     game_start_time: str
     game_end_time: Optional[str] = None
     game_result: Optional[str] = None
+    player1_elo_before: Optional[int] = None
+    player1_elo_after: Optional[int] = None
+    player2_elo_before: Optional[int] = None
+    player2_elo_after: Optional[int] = None
     moves: List[GameMoveData]
 
 class UserStatusRequest(BaseModel):

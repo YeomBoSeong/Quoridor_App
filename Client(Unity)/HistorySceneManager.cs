@@ -155,12 +155,27 @@ public class HistorySceneManager : MonoBehaviour
         if (opponentNameText != null)
             opponentNameText.text = opponentName;
 
-        // TODO: ELO 정보는 별도 API로 가져와야 할 수 있음
-        if (myEloText != null)
-            myEloText.text = "1500"; // 임시값
+        // ELO 정보 표시 (게임 시작 전 ELO)
+        if (isCurrentUserPlayer1)
+        {
+            if (myEloText != null)
+                myEloText.text = currentGameDetail.player1_elo_before > 0 ?
+                    currentGameDetail.player1_elo_before.ToString() : "1500";
 
-        if (opponentEloText != null)
-            opponentEloText.text = "1500"; // 임시값
+            if (opponentEloText != null)
+                opponentEloText.text = currentGameDetail.player2_elo_before > 0 ?
+                    currentGameDetail.player2_elo_before.ToString() : "1500";
+        }
+        else
+        {
+            if (myEloText != null)
+                myEloText.text = currentGameDetail.player2_elo_before > 0 ?
+                    currentGameDetail.player2_elo_before.ToString() : "1500";
+
+            if (opponentEloText != null)
+                opponentEloText.text = currentGameDetail.player1_elo_before > 0 ?
+                    currentGameDetail.player1_elo_before.ToString() : "1500";
+        }
 
         // 기본 프로필 이미지 설정
         SetDefaultProfileImages();
@@ -400,18 +415,28 @@ public class HistorySceneManager : MonoBehaviour
         else
         {
             // 게임 시작 상태
+            // 게임 모드에 따라 초기 시간 설정
+            string initialTime = "10:00"; // 기본값은 Rapid (10분)
+            if (currentGameDetail != null && currentGameDetail.game_mode != null &&
+                currentGameDetail.game_mode.Equals("blitz", System.StringComparison.OrdinalIgnoreCase))
+            {
+                initialTime = "3:00"; // Blitz는 3분
+            }
+
+            Debug.Log($"[HistoryScene] Game mode: {currentGameDetail?.game_mode}, Initial time: {initialTime}");
+
             if (myTimeText != null)
-                myTimeText.text = "10:00";
+                myTimeText.text = initialTime;
             if (opponentTimeText != null)
-                opponentTimeText.text = "10:00";
+                opponentTimeText.text = initialTime;
         }
 
         // 벽 개수 업데이트
         if (myWallCountText != null)
-            myWallCountText.text = myWallsRemaining.ToString();
+            myWallCountText.text = ": " + myWallsRemaining.ToString();
 
         if (opponentWallCountText != null)
-            opponentWallCountText.text = opponentWallsRemaining.ToString();
+            opponentWallCountText.text = ": " + opponentWallsRemaining.ToString();
 
         // 버튼 활성화/비활성화
         if (previousButton != null)

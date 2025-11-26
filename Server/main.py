@@ -1752,6 +1752,10 @@ def get_game_moves(game_id: int, current_user: User = Depends(get_current_user),
             game_start_time=str(game_history.game_start_time) if game_history.game_start_time else "",
             game_end_time=str(game_history.game_end_time) if game_history.game_end_time else None,
             game_result=game_history.game_result,
+            player1_elo_before=game_history.player1_elo_before,
+            player1_elo_after=game_history.player1_elo_after,
+            player2_elo_before=game_history.player2_elo_before,
+            player2_elo_after=game_history.player2_elo_after,
             moves=move_list
         )
 

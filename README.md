@@ -10,7 +10,7 @@ A multiplayer Quoridor game application with real-time matchmaking, friend syste
 
 **Infrastructure**: AWS EC2, Nginx, SSL/TLS (Let's Encrypt)
 
-**External APIs**: Gmail API (Email verification), Unity IAP, Google Mobile Ads
+**External APIs**: Gmail API (Email verification), Google Mobile Ads
 
 ## Project Structure
 

@@ -2,6 +2,8 @@
 
 A multiplayer Quoridor game application with real-time matchmaking, friend system, and AI opponents.
 
+Download at Google Play Store: https://play.google.com/store/apps/details?id=com.BoseongYeom.ValhallaOfQuoridor&hl=ko
+
 ## Dependencies
 
 **Back-end**: FastAPI, SQLite, SQLAlchemy, Uvicorn, WebSocket, JWT, BCrypt
